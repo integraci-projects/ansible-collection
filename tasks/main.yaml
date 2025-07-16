@@ -1,0 +1,9 @@
+---
+- name: Gather and set facts for Syncthing installation
+  ansible.builtin.include_tasks: fact.yaml
+
+- name: Install Syncthing
+  ansible.builtin.include_tasks: install.yaml
+
+- name: Configure Syncthing
+  ansible.builtin.include_tasks: config.yaml
