@@ -1,5 +1,6 @@
 ---
 - name: Install required package (Linux)
+  become: true
   loop:
     - wget
     - tar
@@ -9,7 +10,8 @@
   when: ansible_system == "Linux"
 
 - name: Install Syncthing binary (Linux)
-  changed_when: False
+  become: true
+  changed_when: false
   ansible.builtin.shell:
     cmd: >-
       mkdir -p ~/syncthing &&
@@ -23,6 +25,7 @@
   when: ansible_system == "Linux"
 
 - name: Install Syncthing service config (systemd)
+  become: true
   ansible.builtin.template:
     src: "systemd/syncthing@.service.j2"
     dest: /usr/lib/systemd/system/syncthing@.service
