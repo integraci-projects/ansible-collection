@@ -66,13 +66,15 @@
 
 - name: Create new Syncthing folder config
   loop: "{{ syncthing_folders }}"
+  loop_control:
+    label: "{{ item.id }}"
   ansible.builtin.set_fact:
     syncthing_config_folder: >-
       {{
         {
           'folder': syncthing_config_folder.folder | default([]) + [
             syncthing_config_original.configuration.defaults.folder
-            | combine({ '@id': item, '@path': item })
+            | combine({ '@id': item.id, '@path': item.path })
             | combine(syncthing_combined_config_folder_device, recursive=True)
           ]
         }
