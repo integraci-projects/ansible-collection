@@ -1,5 +1,5 @@
 ---
-- name: Check hosts properties
+- name: Print hosts properties
   ansible.builtin.debug:
     msg:
       - "Architecture: {{ ansible_architecture }}"
@@ -16,3 +16,7 @@
       {% elif ansible_architecture == 'aarch64' %}arm64\
       {% elif ansible_architecture == 'armv7l' %}arm\
       {% else %}amd64{% endif %}"
+
+- name: Print Syncthing architecture
+  ansible.builtin.debug:
+    msg: "Syncthing architecture: {{ syncthing_architecture }}"
