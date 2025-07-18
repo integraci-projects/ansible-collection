@@ -6,7 +6,7 @@
   ansible.builtin.shell:
     cmd: >-
       rm -rf $HOME/.local/state/syncthing &&
-      syncthing generate --no-default-folder --gui-user={{ syncthing_user }} --gui-password={{ syncthing_password }}
+      syncthing generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}
   when: ansible_system == "Linux"
 
 - name: Fetch Syncthing config

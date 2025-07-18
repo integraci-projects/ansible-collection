@@ -2,8 +2,8 @@ syncthing_version: "1.30.0"
 
 syncthing_gui_address: "0.0.0.0:8384"
 
-syncthing_user: ""
-syncthing_password: "syncthing"
+syncthing_gui_user: "syncthing"
+syncthing_gui_password: "syncthing"
 
 # Make sure to only specify folders that `syncthing_user` has access to.
 syncthing_folders: []
