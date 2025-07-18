@@ -51,16 +51,20 @@
 
 - name: Transform combined device config for folder device
   run_once: true
+  loop: "{{ syncthing_combined_config_device.device }}"
+  loop_control:
+    label: "{{ item['@name'] }}"
   ansible.builtin.set_fact:
     syncthing_combined_config_folder_device: >-
       {{
         {
-          'device': syncthing_combined_config_device.device
-            | selectattr('@id', 'defined')
-            | map(attribute='@id')
-            | map('community.general.dict_kv', '@id')
-            | map('combine', { '@introducedBy': '', 'encryptionPassword': None })
-            | list
+          'device': syncthing_combined_config_folder_device.device | default([]) + [
+            {
+              '@id': item['@id'],
+              '@introducedBy': item['@introducedBy'] | default(''),
+              'encryptionPassword': None 
+            }
+          ]
         }
       }}
 
