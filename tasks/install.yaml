@@ -16,7 +16,7 @@
     cmd: >-
       mkdir -p ~/syncthing &&
       wget https://github.com/syncthing/syncthing/releases/download/v{{syncthing_version}}/syncthing-linux-{{syncthing_architecture}}-v{{syncthing_version}}.tar.gz -O ~/syncthing.tar.gz &&
-      tar -xvzf syncthing.tar.gz -C syncthing --strip-components=1 &&
+      tar -xvzf ~/syncthing.tar.gz -C ~/syncthing --strip-components=1 &&
       rm -rf /usr/local/bin/syncthing &&
       mv ~/syncthing/syncthing /usr/local/bin/ &&
       chmod +x /usr/local/bin/syncthing &&
