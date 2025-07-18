@@ -3,16 +3,17 @@
   become: true
   become_user: "{{ syncthing_user }}"
   changed_when: false
+  when: ansible_system == "Linux"
   ansible.builtin.shell:
     cmd: >-
       rm -rf $HOME/.local/state/syncthing &&
       syncthing generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}
-  when: ansible_system == "Linux"
 
 - name: Fetch Syncthing config
   become: true
   become_user: "{{ syncthing_user }}"
   register: syncthing_config_slurped
+  when: ansible_system == "Linux"
   ansible.builtin.slurp:
     src: $HOME/.local/state/syncthing/config.xml
 
@@ -107,6 +108,7 @@
 - name: Write final Syncthing config
   become: true
   become_user: "{{ syncthing_user }}"
+  when: ansible_system == "Linux"
   ansible.builtin.copy:
     content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=False) }}"
     dest: $HOME/.local/state/syncthing/config.xml
@@ -114,6 +116,9 @@
 
 - name: Start Syncthing service (systemd)
   become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
   ansible.builtin.systemd_service:
     name: "syncthing@{{ syncthing_user }}"
     state: restarted
