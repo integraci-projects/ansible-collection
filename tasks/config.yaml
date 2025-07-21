@@ -1,5 +1,5 @@
 ---
-- name: Generate Syncthing config
+- name: Generate Syncthing config (Linux)
   become: true
   become_user: "{{ syncthing_user }}"
   changed_when: false
@@ -9,19 +9,42 @@
       rm -rf $HOME/.local/state/syncthing &&
       syncthing generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}
 
-- name: Fetch Syncthing config
+- name: Generate Syncthing config (Windows)
+  become: true
+  changed_when: false
+  when: ansible_system == "Windows"
+  ansible.windows.win_shell: |
+    $installPath = "$env:LOCALAPPDATA\Programs\Syncthing"
+    $configPath = "$env:LOCALAPPDATA\Syncthing"
+
+    if (Test-Path -Path $configPath) {
+        Remove-Item -Path $configPath -Recurse -Force
+    }
+
+    New-Item -ItemType Directory -Path $configPath -Force | Out-Null
+
+    "$installPath\syncthing.exe" generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}
+
+- name: Fetch Syncthing config (Linux)
   become: true
   become_user: "{{ syncthing_user }}"
-  register: syncthing_config_slurped
+  register: syncthing_config_linux_slurped
   when: ansible_system == "Linux"
   ansible.builtin.slurp:
     src: $HOME/.local/state/syncthing/config.xml
+
+- name: Fetch Syncthing config (Windows)
+  become: true
+  register: syncthing_config_windows_slurped
+  when: ansible_system == "Windows"
+  ansible.windows.slurp:
+    src: "%LOCALAPPDATA%\\Syncthing\\config.xml"
 
 - name: Decode Syncthing config content
   ansible.builtin.set_fact:
     syncthing_config_original: >-
       {{ 
-        syncthing_config_slurped.content
+        syncthing_config_linux_slurped.content | default(syncthing_config_windows_slurped.content)
         | ansible.builtin.b64decode
         | ansible.utils.from_xml
       }}
@@ -85,7 +108,7 @@
         }
       }}
 
-- name: Forge final Syncthing config
+- name: Merge all into final Syncthing config
   ansible.builtin.set_fact:
     syncthing_config_updated: >-
       {{
@@ -105,7 +128,7 @@
         })
       }}
 
-- name: Write final Syncthing config
+- name: Write final Syncthing config (Linux)
   become: true
   become_user: "{{ syncthing_user }}"
   when: ansible_system == "Linux"
@@ -113,6 +136,14 @@
     content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=False) }}"
     dest: $HOME/.local/state/syncthing/config.xml
     mode: "0600"
+
+- name: Write final Syncthing config (Windows)
+  become: true
+  when: ansible_system == "Windows"
+  ansible.windows.win_copy:
+    content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=False) }}"
+    dest: "%LOCALAPPDATA%\\Syncthing\\config.xml"
+    force: true
 
 - name: Start Syncthing service (systemd)
   become: true
@@ -125,3 +156,20 @@
     daemon_reload: true
     masked: false
     enabled: true
+
+- name: Waiting Syncthing service to be ready
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Restart Syncthing
+  become: true
+  ansible.builtin.systemd:
+    name: syncthing@{{ syncthing_user }}
+    state: restarted
+
+- name: Start Syncthing service (Windows)
+  become: true
+  when: ansible_system == "Windows"
+  ansible.windows.win_service:
+    name: syncthing
+    state: restarted
