@@ -5,6 +5,7 @@ This is an [Ansible](https://www.ansible.com/) role which installs [Syncthing](h
 This role _implicitly_ depends on:
 
 - [`ansible.utils`](https://github.com/ansible-collections/ansible.utils)
+- [`ansible.windows`](https://github.com/ansible-collections/ansible.windows)
 
 ## License
 
