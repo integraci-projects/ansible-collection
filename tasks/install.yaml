@@ -29,29 +29,29 @@
   changed_when: false
   when: ansible_system == "Windows"
   ansible.windows.win_shell: |
-    $installDir = "$env:LOCALAPPDATA\Programs\Syncthing"
-    $tempDir = Join-Path $env:TEMP "syncthing_install"
-    $zipFile = Join-Path $tempDir "syncthing.zip"
+    $installPath = "$env:LOCALAPPDATA\Programs\Syncthing"
+    $tempPath = Join-Path $env:TEMP "syncthing_install"
+    $zipFile = Join-Path $tempPath "syncthing.zip"
     $downloadUrl = "https://github.com/syncthing/syncthing/releases/download/v{{ syncthing_version }}/syncthing-windows-{{ syncthing_architecture }}-v{{ syncthing_version }}.zip"
 
-    New-Item -ItemType Directory -Path $installDir -Force | Out-Null
-    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $installPath -Force | Out-Null
+    New-Item -ItemType Directory -Path $tempPath -Force | Out-Null
 
     try {
         Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile -UseBasicParsing
     } catch {
-        Remove-Item -Path $tempDir -Recurse -Force
+        Remove-Item -Path $tempPath -Recurse -Force
         exit 1
     }
 
-    Expand-Archive -Path $zipFile -DestinationPath $tempDir -Force
+    Expand-Archive -Path $zipFile -DestinationPath $tempPath -Force
 
-    $sourceExe = Get-ChildItem -Path $tempDir -Filter "syncthing.exe" -Recurse | Select-Object -First 1
+    $sourceExe = Get-ChildItem -Path $tempPath -Filter "syncthing.exe" -Recurse | Select-Object -First 1
     if ($sourceExe) {
         Move-Item -Path $sourceExe.FullName -Destination $installPath -Force
     }
 
-    Remove-Item -Path $tempDir -Recurse -Force
+    Remove-Item -Path $tempPath -Recurse -Force
 
 - name: Install Syncthing service config (systemd)
   become: true
@@ -62,6 +62,15 @@
     src: "systemd/syncthing@.service.j2"
     dest: /usr/lib/systemd/system/syncthing@.service
     mode: "0644"
-  when:
-    - ansible_system == "Linux"
-    - ansible_service_mgr == "systemd"
+
+- name: Install Syncthing service config (Windows)
+  become: true
+  when: ansible_system == "Windows"
+  ansible.windows.win_service:
+    name: syncthing
+    display_name: Syncthing
+    description: Syncthing service for file synchronization
+    path: >-
+      %LOCALAPPDATA%\\Programs\\Syncthing\\syncthing.exe
+      --no-restart --no-upgrade --logflags=0
+    start_mode: delayed

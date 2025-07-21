@@ -13,7 +13,7 @@
       ansible.builtin.include_tasks: install.yaml
     - name: Configure Syncthing
       ansible.builtin.include_tasks: config.yaml
-  
+
 - name: Perform Syncthing uninstallation tasks
   when: not syncthing_enabled | bool
   tags:
