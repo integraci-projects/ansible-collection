@@ -23,7 +23,7 @@
 
     New-Item -ItemType Directory -Path $configPath -Force | Out-Null
 
-    "$installPath\syncthing.exe" generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}
+    & "$installPath\syncthing.exe" generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}
 
 - name: Fetch Syncthing config (Linux)
   become: true
