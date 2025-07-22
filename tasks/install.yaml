@@ -71,6 +71,7 @@
     display_name: Syncthing
     description: Syncthing service for file synchronization
     path: >-
-      %LOCALAPPDATA%\\Programs\\Syncthing\\syncthing.exe
+      %LOCALAPPDATA%\Programs\Syncthing\syncthing.exe
       --no-restart --no-upgrade --logflags=0
     start_mode: delayed
+    username: SYSTEM
