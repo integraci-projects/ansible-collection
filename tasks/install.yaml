@@ -79,7 +79,7 @@
     display_name: Syncthing
     application: "%LOCALAPPDATA%\\Programs\\Syncthing\\syncthing.exe"
     arguments:
+      - --home="C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing"
       - --no-restart
       - --no-upgrade
-      - --logflags=0
     state: present

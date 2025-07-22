@@ -11,6 +11,7 @@
 
 - name: Generate Syncthing config (Windows)
   become: true
+  become_user: "{{ syncthing_user }}"
   changed_when: false
   when: ansible_system == "Win32NT"
   ansible.windows.win_shell: |
@@ -35,6 +36,7 @@
 
 - name: Fetch Syncthing config (Windows)
   become: true
+  become_user: "{{ syncthing_user }}"
   register: syncthing_config_windows_slurped
   when: ansible_system == "Win32NT"
   ansible.windows.slurp:
@@ -139,6 +141,7 @@
 
 - name: Write final Syncthing config (Windows)
   become: true
+  become_user: "{{ syncthing_user }}"
   when: ansible_system == "Win32NT"
   ansible.windows.win_copy:
     content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=False) }}"
