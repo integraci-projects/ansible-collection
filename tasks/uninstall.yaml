@@ -1,4 +1,20 @@
 ---
+- name: Uninstall Syncthing service config (systemd)
+  become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.file:
+    path: /usr/lib/systemd/system/syncthing@.service
+    state: absent
+
+- name: Uninstall Syncthing service config (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  community.windows.win_nssm:
+    name: syncthing
+    state: absent
+
 - name: Uninstall Syncthing binary (Linux)
   become: true
   loop:
@@ -20,20 +36,3 @@
   ansible.windows.win_file:
     path: "{{ item }}"
     state: absent
-
-- name: Uninstall Syncthing service config (systemd)
-  become: true
-  when:
-    - ansible_system == "Linux"
-    - ansible_service_mgr == "systemd"
-  ansible.builtin.file:
-    path: /usr/lib/systemd/system/syncthing@.service
-    state: absent
-
-- name: Uninstall Syncthing service config (Windows)
-  become: true
-  when: ansible_system == "Win32NT"
-  community.windows.win_nssm:
-    name: syncthing
-    state: absent
-
