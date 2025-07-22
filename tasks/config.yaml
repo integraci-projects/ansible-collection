@@ -158,11 +158,17 @@
     enabled: true
 
 - name: Waiting Syncthing service to be ready
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
   ansible.builtin.pause:
     seconds: 30
 
 - name: Restart Syncthing
   become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
   ansible.builtin.systemd:
     name: syncthing@{{ syncthing_user }}
     state: restarted
