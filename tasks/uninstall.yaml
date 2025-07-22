@@ -1,4 +1,20 @@
 ---
+- name: Stop Syncthing service (Linux)
+  become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.systemd:
+    name: syncthing@*
+    state: stopped
+
+- name: Stop Syncthing service (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  community.windows.win_service:
+    name: syncthing
+    state: stopped
+
 - name: Uninstall Syncthing service config (systemd)
   become: true
   when:
