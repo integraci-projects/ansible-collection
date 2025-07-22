@@ -9,6 +9,14 @@
     state: latest
   when: ansible_system == "Linux"
 
+- name: Install required package (Windows)
+  become: true
+  loop:
+    - nssm
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ item }}"
+    state: present
+
 - name: Install Syncthing binary (Linux)
   become: true
   changed_when: false
@@ -66,12 +74,12 @@
 - name: Install Syncthing service config (Windows)
   become: true
   when: ansible_system == "Win32NT"
-  ansible.windows.win_service:
+  community.windows.win_nssm:
     name: syncthing
     display_name: Syncthing
-    description: Syncthing service for file synchronization
-    path: >-
-      %LOCALAPPDATA%\Programs\Syncthing\syncthing.exe
-      --no-restart --no-upgrade --logflags=0
-    start_mode: delayed
-    username: SYSTEM
+    application: "%LOCALAPPDATA%\\Programs\\Syncthing\\syncthing.exe"
+    arguments:
+      - --no-restart
+      - --no-upgrade
+      - --logflags=0
+    state: present
