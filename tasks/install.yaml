@@ -27,7 +27,7 @@
 - name: Install Syncthing binary (Windows)
   become: true
   changed_when: false
-  when: ansible_system == "Windows"
+  when: ansible_system == "Win32NT"
   ansible.windows.win_shell: |
     $installPath = "$env:LOCALAPPDATA\Programs\Syncthing"
     $tempPath = Join-Path $env:TEMP "syncthing_install"
@@ -65,7 +65,7 @@
 
 - name: Install Syncthing service config (Windows)
   become: true
-  when: ansible_system == "Windows"
+  when: ansible_system == "Win32NT"
   ansible.windows.win_service:
     name: syncthing
     display_name: Syncthing

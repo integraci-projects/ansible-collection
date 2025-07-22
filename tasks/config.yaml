@@ -12,7 +12,7 @@
 - name: Generate Syncthing config (Windows)
   become: true
   changed_when: false
-  when: ansible_system == "Windows"
+  when: ansible_system == "Win32NT"
   ansible.windows.win_shell: |
     $installPath = "$env:LOCALAPPDATA\Programs\Syncthing"
     $configPath = "$env:LOCALAPPDATA\Syncthing"
@@ -36,7 +36,7 @@
 - name: Fetch Syncthing config (Windows)
   become: true
   register: syncthing_config_windows_slurped
-  when: ansible_system == "Windows"
+  when: ansible_system == "Win32NT"
   ansible.windows.slurp:
     src: "%LOCALAPPDATA%\\Syncthing\\config.xml"
 
@@ -139,7 +139,7 @@
 
 - name: Write final Syncthing config (Windows)
   become: true
-  when: ansible_system == "Windows"
+  when: ansible_system == "Win32NT"
   ansible.windows.win_copy:
     content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=False) }}"
     dest: "%LOCALAPPDATA%\\Syncthing\\config.xml"
@@ -169,7 +169,7 @@
 
 - name: Start Syncthing service (Windows)
   become: true
-  when: ansible_system == "Windows"
+  when: ansible_system == "Win32NT"
   ansible.windows.win_service:
     name: syncthing
     state: restarted
