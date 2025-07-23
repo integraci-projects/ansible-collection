@@ -80,7 +80,7 @@
     display_name: Syncthing
     application: "%LOCALAPPDATA%\\Programs\\Syncthing\\syncthing.exe"
     arguments:
-      - --home="C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing"
+      - --home=C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing
       - --no-restart
       - --no-upgrade
     username: "{{ syncthing_user }}"
