@@ -5,6 +5,7 @@ syncthing_gui_user: "syncthing"
 syncthing_gui_password: "syncthing"
 
 syncthing_user: "{{ ansible_user }}"
+syncthing_password: "{{ ansible_password }}"
 # Make sure to only specify folders that `syncthing_user` has access to.
 # Use format:
 # - id: folder_id # Unique folder identifier that same across all hosts

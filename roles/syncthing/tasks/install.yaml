@@ -84,4 +84,5 @@
       - --no-restart
       - --no-upgrade
     username: "{{ syncthing_user }}"
+    password: "{{ syncthing_password }}"
     state: present
