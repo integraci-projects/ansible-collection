@@ -79,10 +79,9 @@
     name: syncthing
     display_name: Syncthing
     application: "%LOCALAPPDATA%\\Programs\\Syncthing\\syncthing.exe"
-    arguments:
-      - --home=C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing
-      - --no-restart
-      - --no-upgrade
-    username: "{{ syncthing_user }}"
-    password: "{{ syncthing_password }}"
+    arguments: >-
+      serve
+      --home="C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing"
+      --no-restart
+      --no-upgrade
     state: present
