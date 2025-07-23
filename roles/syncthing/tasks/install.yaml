@@ -82,4 +82,5 @@
       - --home="C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing"
       - --no-restart
       - --no-upgrade
+    username: "{{ syncthing_user }}"
     state: present

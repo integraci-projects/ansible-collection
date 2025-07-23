@@ -1,0 +1,18 @@
+namespace: divistant
+name: integraci
+version: 1.0.0
+readme: README.md
+license_file: LICENSE
+authors:
+   - Muhammad Naufal <naufal.khoirul@divistant.com
+   - Irkham Hidayat <irkham.hidayat@divistant.com>
+dependencies:
+   "ansible.utils": "*"
+   "ansible.windows": "*"
+   "community.windows": "*"
+   "chocolatey.chocolatey": "*"
+license:
+   - GPL-3.0-or-later
+tags:
+   - collection
+   - integraci

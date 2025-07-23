@@ -1,17 +1,7 @@
-# Syncthing Ansible Role
+# Divistant IntegraCI Collection
 
-This is an [Ansible](https://www.ansible.com/) role which installs [Syncthing](https://syncthing.net/) binary to run service.
-
-This role _implicitly_ depends on:
-
-- [`ansible.utils`](https://github.com/ansible-collections/ansible.utils)
-- [`ansible.windows`](https://github.com/ansible-collections/ansible.windows)
+This is an [Ansible](https://www.ansible.com/) galaxy collection for managing various tasks and configurations within the Divistant IntegraCI project.
 
 ## License
 
 GPL-3.0-or-later
-
-## Author
-
-- Muhammad Naufal <<me@falkia34.dev>>
-- Irkham Hidayat <<irkham.hidayat@divistant.com>>
