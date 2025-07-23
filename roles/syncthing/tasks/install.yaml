@@ -4,15 +4,16 @@
   loop:
     - wget
     - tar
+  when: ansible_system == "Linux"
   ansible.builtin.package:
     name: "{{ item }}"
     state: latest
-  when: ansible_system == "Linux"
 
 - name: Install required package (Windows)
   become: true
   loop:
     - nssm
+  when: ansible_system == "Win32NT"
   chocolatey.chocolatey.win_chocolatey:
     name: "{{ item }}"
     state: present
@@ -20,6 +21,7 @@
 - name: Install Syncthing binary (Linux)
   become: true
   changed_when: false
+  when: ansible_system == "Linux"
   ansible.builtin.shell:
     cmd: >-
       mkdir -p ~/syncthing &&
@@ -30,7 +32,6 @@
       chmod +x /usr/local/bin/syncthing &&
       rm -rf ~/syncthing.tar.gz &&
       rm -rf ~/syncthing
-  when: ansible_system == "Linux"
 
 - name: Install Syncthing binary (Windows)
   become: true
