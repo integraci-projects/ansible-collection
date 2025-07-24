@@ -61,7 +61,7 @@
         }
       }}
 
-- name: Combine all Syncthing device configs
+- name: Combine Syncthing device configs from all hosts
   run_once: true
   ansible.builtin.set_fact:
     syncthing_combined_config_device: >-
@@ -71,27 +71,36 @@
             | map('extract', hostvars)
             | selectattr('syncthing_config_device', 'defined')
             | map(attribute='syncthing_config_device.device')
-            | list 
+            | list
         }
       }}
 
-- name: Transform combined device config for folder device
-  run_once: true
-  loop: "{{ syncthing_combined_config_device.device }}"
+- name: Create new Syncthing folder device configs
+  loop: "{{ syncthing_folders }}"
   loop_control:
-    label: "{{ item['@name'] }}"
+    label: "{{ item.id }}"
+  ansible.builtin.set_fact:
+    syncthing_config_folder_device: >-
+      {{
+        syncthing_config_folder_device | default({}) | combine({
+          item.id: syncthing_config_folder_device[item.id] | default([]) + [
+            syncthing_config_original.configuration.defaults.folder.device
+          ]
+        }, recursive=True)
+      }}
+
+- name: Combine Syncthing folder device configs from all hosts
+  run_once: true
   ansible.builtin.set_fact:
     syncthing_combined_config_folder_device: >-
       {{
-        {
-          'device': syncthing_combined_config_folder_device.device | default([]) + [
-            {
-              '@id': item['@id'],
-              '@introducedBy': item['@introducedBy'] | default(''),
-              'encryptionPassword': None 
-            }
-          ]
-        }
+        syncthing_combined_config_folder_device
+        | default({})
+        | combine(ansible_play_hosts_all
+          | map('extract', hostvars)
+          | selectattr('syncthing_config_folder_device', 'defined')
+          | map(attribute='syncthing_config_folder_device'),
+          recursive=True, list_merge='append_rp')
       }}
 
 - name: Create new Syncthing folder config
@@ -105,7 +114,7 @@
           'folder': syncthing_config_folder.folder | default([]) + [
             syncthing_config_original.configuration.defaults.folder
             | combine({ '@id': item.id, '@path': item.path, '@type': item.type })
-            | combine(syncthing_combined_config_folder_device, recursive=True)
+            | combine({ 'device': syncthing_combined_config_folder_device[item.id] }, recursive=True)
           ]
         }
       }}
