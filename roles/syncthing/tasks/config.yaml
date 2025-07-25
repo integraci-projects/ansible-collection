@@ -132,8 +132,10 @@
               'address': syncthing_gui_address,
             },
             'options': {
+              'reconnectionIntervalS': '10',
+              'startBrowser': 'false',
+              'urAccepted': '-1',
               'crashReportingEnabled': 'false',
-              'urAccepted': '-1'
             }
           }, recursive=True)
         })
