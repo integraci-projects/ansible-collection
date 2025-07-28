@@ -158,27 +158,7 @@
     path: "{{ item.path }}/.stignore"
     state: absent
 
-- name: Write .stignore to each Syncthing folder
-  become: true
-  become_user: "{{ syncthing_user }}"
-  loop: "{{ syncthing_folders }}"
-  loop_control:
-    label: "{{ item.id }}"
-  ansible.builtin.copy:
-    dest: "{{ item.path }}/.stignore"
-    content: |
-      # Ignore log files
-      *.log
 
-      # Ignore folders
-      logs/
-      tmp
-      build
-
-      # Optional
-      .git/
-      node_modules/
-    mode: '0644'
 
 
 - name: Write .stignore to each Syncthing folder
@@ -192,7 +172,11 @@
     content: |
       # Ignore all log files
       *.log
-      tmp/
+      
+      # Ignore folders
+      logs/
+      tmp
+      build
     mode: '0644'
 
 - name: Write final Syncthing config (Windows)
