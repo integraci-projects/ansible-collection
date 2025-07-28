@@ -150,6 +150,30 @@
     dest: $HOME/.local/state/syncthing/config.xml
     mode: "0600"
 
+
+- name: Write .stignore to each Syncthing folder
+  become: true
+  become_user: "{{ syncthing_user }}"
+  loop: "{{ syncthing_folders }}"
+  loop_control:
+    label: "{{ item.id }}"
+  ansible.builtin.copy:
+    dest: "{{ item.path }}/.stignore"
+    content: |
+      # Ignore log files
+      *.log
+
+      # Ignore folders
+      logs/
+      tmp/
+      build/
+
+      # Optional
+      .git/
+      node_modules/
+    mode: '0644'
+
+
 - name: Write .stignore to each Syncthing folder
   become: true
   become_user: "{{ syncthing_user }}"
