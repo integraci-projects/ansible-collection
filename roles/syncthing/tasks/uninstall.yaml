@@ -1,12 +1,23 @@
 ---
-- name: Stop Syncthing service (Linux)
+- name: Get all Syncthing@ services
   become: true
   when:
     - ansible_system == "Linux"
     - ansible_service_mgr == "systemd"
+  shell: systemctl list-units --type=service --no-legend 'syncthing@*.service' | awk '{print $1}'
+  register: syncthing_services
+
+- name: Stop each Syncthing@ service
+  become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+    - syncthing_services.stdout_lines | length > 0
   ansible.builtin.systemd:
-    name: syncthing@*
+    name: "{{ item }}"
     state: stopped
+  loop: "{{ syncthing_services.stdout_lines }}"
+
 
 - name: Stop Syncthing service (Windows)
   become: true
