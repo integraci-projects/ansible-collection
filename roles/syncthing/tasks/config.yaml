@@ -165,8 +165,8 @@
 
       # Ignore folders
       logs/
-      tmp/
-      build/
+      /tmp
+      /build
 
       # Optional
       .git/
