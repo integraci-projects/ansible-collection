@@ -56,8 +56,11 @@
     syncthing_config_device: >-
       {{
         {
-          'device': syncthing_config_original.configuration.device
-            | combine({ 'autoAcceptFolders': 'false' })
+          inventory_hostname: syncthing_config_original.configuration.device
+            | combine({
+                '@name': inventory_hostname,
+                'autoAcceptFolders': 'false',
+              })
         }
       }}
 
@@ -66,41 +69,35 @@
   ansible.builtin.set_fact:
     syncthing_combined_config_device: >-
       {{
-        {
-          'device': ansible_play_hosts_all
-            | map('extract', hostvars)
-            | selectattr('syncthing_config_device', 'defined')
-            | map(attribute='syncthing_config_device.device')
-            | list
-        }
-      }}
-
-- name: Create new Syncthing folder device configs
-  loop: "{{ syncthing_folders }}"
-  loop_control:
-    label: "{{ item.id }}"
-  ansible.builtin.set_fact:
-    syncthing_config_folder_device: >-
-      {{
-        syncthing_config_folder_device | default({}) | combine({
-          item.id: syncthing_config_folder_device[item.id] | default([]) + [
-            syncthing_config_original.configuration.defaults.folder.device
-          ]
-        }, recursive=True)
-      }}
-
-- name: Combine Syncthing folder device configs from all hosts
-  run_once: true
-  ansible.builtin.set_fact:
-    syncthing_combined_config_folder_device: >-
-      {{
-        syncthing_combined_config_folder_device
+        syncthing_combined_config_device
         | default({})
         | combine(ansible_play_hosts_all
           | map('extract', hostvars)
-          | selectattr('syncthing_config_folder_device', 'defined')
-          | map(attribute='syncthing_config_folder_device'),
-          recursive=True, list_merge='append_rp')
+          | selectattr('syncthing_config_device', 'defined')
+          | map(attribute='syncthing_config_device'),
+          recursive=True)
+      }}
+
+- name: Create a map of all folders from all hosts
+  run_once: true
+  ansible.builtin.set_fact:
+    syncthing_all_folders_map: >-
+      {{
+        syncthing_all_folders_map | default({})
+        | combine(
+            dict(
+              ansible_play_hosts_all
+              | map('extract', hostvars)
+              | selectattr('syncthing_folders', 'defined')
+              | map(attribute='inventory_hostname')
+              | zip(
+                  ansible_play_hosts_all
+                  | map('extract', hostvars)
+                  | selectattr('syncthing_folders', 'defined')
+                  | map(attribute='syncthing_folders')
+                )
+            )
+          )
       }}
 
 - name: Create new Syncthing folder config
@@ -110,13 +107,44 @@
   ansible.builtin.set_fact:
     syncthing_config_folder: >-
       {{
-        {
-          'folder': syncthing_config_folder.folder | default([]) + [
-            syncthing_config_original.configuration.defaults.folder
-            | combine({ '@id': item.id, '@path': item.path, '@type': item.type })
-            | combine({ 'device': syncthing_combined_config_folder_device[item.id] }, recursive=True)
-          ]
-        }
+        syncthing_config_folder | default({'folder': []})
+        | combine({
+            'folder': syncthing_config_folder.folder + [
+              syncthing_config_original.configuration.defaults.folder
+              | combine({
+                  '@id': item.id,
+                  '@path': item.path,
+                  '@type': item.type,
+                })
+              | combine({
+                  'device': (
+                    item.partners | default(
+                      syncthing_all_folders_map
+                      | dict2items
+                      | selectattr('key', '!=', inventory_hostname)
+                      | selectattr('value', 'selectattr', 'id', 'eq', item.id)
+                      | map(attribute='key')
+                      | list
+                    )
+                  )
+                  | map('extract', syncthing_combined_config_device)
+                  | list
+                }, recursive=True)
+            ]
+          })
+      }}
+
+- name: Determine devices to include in the config
+  ansible.builtin.set_fact:
+    syncthing_final_devices: >-
+      {{
+        syncthing_config_folder.folder
+        | map(attribute='device')
+        | flatten
+        | map(attribute='@id')
+        | unique
+        | map('extract', syncthing_combined_config_device)
+        | list
       }}
 
 - name: Merge all into final Syncthing config
@@ -124,21 +152,24 @@
     syncthing_config_updated: >-
       {{
         syncthing_config_original
-        | combine({ 'configuration': syncthing_config_original.configuration
-          | combine(syncthing_combined_config_device)
-          | combine(syncthing_config_folder)
-          | combine({
-            'gui': {
-              'address': syncthing_gui_address,
-            },
-            'options': {
-              'reconnectionIntervalS': '10',
-              'startBrowser': 'false',
-              'urAccepted': '-1',
-              'crashReportingEnabled': 'false',
-            }
-          }, recursive=True)
-        })
+        | combine({
+            'configuration': syncthing_config_original.configuration
+            | combine({
+                'device': [syncthing_config_device[inventory_hostname]] + syncthing_final_devices
+              })
+            | combine(syncthing_config_folder)
+            | combine({
+                'gui': {
+                  'address': syncthing_gui_address,
+                },
+                'options': {
+                  'reconnectionIntervalS': '10',
+                  'startBrowser': 'false',
+                  'urAccepted': '-1',
+                  'crashReportingEnabled': 'false',
+                }
+              }, recursive=True)
+          })
       }}
 
 - name: Write final Syncthing config (Linux)
