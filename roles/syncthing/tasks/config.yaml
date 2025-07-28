@@ -192,6 +192,7 @@
     content: |
       # Ignore all log files
       *.log
+      tmp/
     mode: '0644'
 
 
