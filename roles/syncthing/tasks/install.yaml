@@ -84,4 +84,6 @@
       --home="C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing"
       --no-restart
       --no-upgrade
+    env:  
+      STTRACE: scanner
     state: present
