@@ -85,5 +85,5 @@
       --no-restart
       --no-upgrade
     env:  
-      STTRACE: scanner
+      STTRACE: events
     state: present

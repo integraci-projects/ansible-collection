@@ -1,0 +1,20 @@
+- name: Stop Syncthing service (Linux)
+  become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+    - not syncthing_enabled | default(true)
+  ansible.builtin.systemd:
+    name: "syncthing@{{ ansible_user }}"
+    state: stopped
+    enabled: false
+
+- name: Stop Syncthing service (Windows)
+  become: true
+  when:
+    - ansible_system == "Win32NT"
+    - not syncthing_enabled | default(true)
+  ansible.windows.win_service:
+    name: syncthing
+    state: stopped
+    start_mode: disabled
