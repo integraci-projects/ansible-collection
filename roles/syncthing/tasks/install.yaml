@@ -84,10 +84,6 @@
       --home="C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing"
       --no-restart
       --no-upgrade
-    env:  
+    app_environment:  
       STTRACE: events
     state: present
-
-- name: Force set environment variable STTRACE for Syncthing
-  win_command: >
-    nssm set syncthing AppEnvironmentExtra "STTRACE=events"
