@@ -153,7 +153,7 @@
                   '@id': item.id,
                   '@path': item.path,
                   '@type': item.type,
-                  'rescanIntervalS': '3600',
+                  'rescanIntervalS': '60',
                   'fsWatcherEnabled': item.watch_for_changes | default(true)
                 })
               | combine({
