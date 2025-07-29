@@ -11,5 +11,8 @@ syncthing_password: "{{ ansible_password }}"
 # - id: folder_id # Unique folder identifier that same across all hosts
 #   path: /path/to/folder # Path to the folder on the host, can be different on each host
 #   type: "sendreceive" # Folder type, can be "sendreceive", "sendonly", or "receiveonly"
+#   rescan_interval: 60 # Optional, rescan interval in seconds, default is 60
+#   watch_changes: true # Optional, whether to watch for changes in the folder, default
+#   partners: # Optional, list of partner devices for the folder, specify the inventory hostname of the device
 #   ignore: # Optional, patterns to ignore in the folder, use multiline string format
 syncthing_folders: []

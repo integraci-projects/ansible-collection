@@ -1,0 +1,57 @@
+---
+- name: Gather folder devices
+  loop: "{{ syncthing_comb_map_folder_device[item.id][inventory_hostname] }}"
+  loop_control:
+    loop_var: device
+  when: inventory_hostname in syncthing_comb_map_folder_device[item.id][device]
+  ansible.builtin.set_fact:
+    syncthing_conf_folder_device: >-
+      {{
+        syncthing_conf_folder_device
+        | default({})
+        | combine({
+            item.id: syncthing_conf_folder_device[item.id] | default([]) + [
+              syncthing_config_original.configuration.defaults.folder.device
+              | combine({
+                  '@id': syncthing_comb_conf_device[device]['@id'],
+                  '@introducedBy': syncthing_comb_conf_device[device]['@introducedBy'],
+                })
+            ]
+          }, recursive=True, list_merge='prepend_rp')
+      }}
+
+- name: Create new Syncthing folder config
+  ansible.builtin.set_fact:
+    syncthing_conf_folder: >-
+      {{
+        {
+          'folder': syncthing_conf_folder.folder | default([]) + [
+            syncthing_config_original.configuration.defaults.folder
+            | combine({
+                '@id': item.id,
+                '@path': item.path,
+                '@type': item.type,
+                '@rescanIntervalS': (item.rescan_interval | default('60') | string),
+                '@fsWatcherEnabled': item.watch_changes | default(true)
+              })
+            | combine({ 'device': syncthing_conf_folder_device[item.id] }, recursive=True)
+          ]
+        }
+      }}
+
+- name: Gather folder devices
+  loop: "{{ syncthing_comb_map_folder_device[item.id][inventory_hostname] }}"
+  loop_control:
+    loop_var: device
+  when: inventory_hostname in syncthing_comb_map_folder_device[item.id][device]
+  ansible.builtin.set_fact:
+    syncthing_conf_device: >-
+      {{
+        syncthing_conf_device
+        | default({})
+        | combine({
+            'device': syncthing_conf_device.device | default([]) + [
+              syncthing_comb_conf_device[device]
+            ]
+          }, recursive=True, list_merge='prepend_rp')
+      }}
