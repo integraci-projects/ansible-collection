@@ -148,11 +148,18 @@
         {
           'folder': syncthing_config_folder.folder | default([]) + [
             syncthing_config_original.configuration.defaults.folder
-            | combine({ '@id': item.id, '@path': item.path, '@type': item.type })
+            | combine({
+                '@id': item.id,
+                '@path': item.path,
+                '@type': item.type,
+                'rescanIntervalS': '3600',  # default 1 jam
+                'fsWatcherEnabled': item.watch_for_changes | default(true)
+              })
             | combine({ 'device': syncthing_combined_config_folder_device[item.id] }, recursive=True)
           ]
         }
       }}
+
 
 - name: Merge all into final Syncthing config
   ansible.builtin.set_fact:
