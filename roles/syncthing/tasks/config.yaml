@@ -152,7 +152,7 @@
                 '@id': item.id,
                 '@path': item.path,
                 '@type': item.type,
-                '@rescanIntervalS': '0',
+                '@rescanIntervalS': '60',
                 '@fsWatcherEnabled': item.watch_for_changes | default(true)
               })
             | combine({ 'device': syncthing_combined_config_folder_device[item.id] }, recursive=True)
