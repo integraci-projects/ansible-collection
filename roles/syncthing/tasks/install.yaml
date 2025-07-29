@@ -87,3 +87,7 @@
     env:  
       STTRACE: events
     state: present
+
+- name: Force set environment variable STTRACE for Syncthing
+  win_command: >
+    nssm set syncthing AppEnvironmentExtra "STTRACE=events"
