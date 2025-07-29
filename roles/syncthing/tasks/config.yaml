@@ -1,4 +1,39 @@
 ---
+- name: Create folders for Syncthing (Linux)
+  become: true
+  become_user: "{{ syncthing_user }}"
+  loop: "{{ syncthing_folders }}"
+  loop_control:
+    label: "{{ item.id }}"
+  when: ansible_system == "Linux"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: '0755'
+    recurse: true
+
+- name: Create folders for Syncthing (Windows)
+  become: true
+  become_user: "{{ syncthing_user }}"
+  loop: "{{ syncthing_folders }}"
+  loop_control:
+    label: "{{ item.id }}"
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_file:
+    path: "{{ item.path }}"
+    state: directory
+
+- name: Write new .stignore to each Syncthing folder
+  become: true
+  become_user: "{{ syncthing_user }}"
+  loop: "{{ syncthing_folders }}"
+  loop_control:
+    label: "{{ item.id }}"
+  ansible.builtin.copy:
+    dest: "{{ item.path }}/.stignore"
+    content: "{{ item.ignore | default('') }}"
+    mode: '0644'
+
 - name: Generate Syncthing config (Linux)
   become: true
   become_user: "{{ syncthing_user }}"
@@ -149,35 +184,6 @@
     content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=False) }}"
     dest: $HOME/.local/state/syncthing/config.xml
     mode: "0600"
-
-- name: Delete .stignore Old if Exist
-  become: true
-  become_user: "{{ syncthing_user }}"
-  loop: "{{ syncthing_folders }}"
-  ansible.builtin.file:
-    path: "{{ item.path }}/.stignore"
-    state: absent
-
-
-
-
-- name: Write .stignore to each Syncthing folder
-  become: true
-  become_user: "{{ syncthing_user }}"
-  loop: "{{ syncthing_folders }}"
-  loop_control:
-    label: "{{ item.id }}"
-  ansible.builtin.copy:
-    dest: "{{ item.path }}/.stignore"
-    content: |
-      # Ignore all log files
-      *.log
-      
-      # Ignore folders
-      logs/
-      tmp
-      build
-    mode: '0644'
 
 - name: Write final Syncthing config (Windows)
   become: true
