@@ -84,6 +84,8 @@
       --home="C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing"
       --no-restart
       --no-upgrade
+      --logfile="C:\Users\{{ syncthing_user }}\AppData\Local\Syncthing\syncthing.log"
+      --logflags=0
     app_environment:  
       STTRACE: events
     state: present
