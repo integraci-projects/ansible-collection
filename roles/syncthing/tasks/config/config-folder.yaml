@@ -20,6 +20,36 @@
           }, recursive=True, list_merge='prepend_rp')
       }}
 
+- name: Configure folder versioning
+  when: item.versioning is defined
+  ansible.builtin.set_fact:
+    syncthing_conf_folder_versioning: >-
+      {{
+        syncthing_conf_folder_versioning
+        | default({})
+        | combine({
+            item.id: {
+              '@type': item.versioning.type | default('trashcan'),
+              'fsPath': item.versioning.path | default('.stversions'),
+              'cleanupIntervalS': (item.versioning.cleanup_interval | default(0) | string),
+              'params': [
+                {
+                  '@key': 'cleanoutDays',
+                  '@val': (item.versioning.cleanout_days | default(0) | string)
+                },
+                {
+                  '@key': 'keep',
+                  '@val': (item.versioning.keep | default(5) | string)
+                },
+                {
+                  '@key': 'maxAge',
+                  '@val': (item.versioning.max_age | default(0) | string)
+                }
+              ],
+            }
+          }, recursive=True, list_merge='prepend_rp')
+      }}
+
 - name: Create new Syncthing folder config
   ansible.builtin.set_fact:
     syncthing_conf_folder: >-
@@ -34,6 +64,10 @@
                 '@rescanIntervalS': (item.rescan_interval | default('60') | string),
                 '@fsWatcherEnabled': item.watch_changes | default(true)
               })
+            | combine({
+                'versioning': syncthing_conf_folder_versioning[item.id]
+                  | default(syncthing_config_original.configuration.defaults.folder.versioning)
+              }, recursive=True)
             | combine({ 'device': syncthing_conf_folder_device[item.id] }, recursive=True)
           ]
         }
