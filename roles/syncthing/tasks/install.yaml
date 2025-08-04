@@ -85,7 +85,8 @@
       --no-restart
       --no-upgrade
       --logfile="C:\\Syncthing\\syncthing.log"
-      --logflags=0
+      --logflags=3
     app_environment:  
-      STTRACE: events
+      STTRACE: model,scanner,filesystem,events
     state: present
+
