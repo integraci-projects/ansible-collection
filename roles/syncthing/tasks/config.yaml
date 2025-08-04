@@ -23,162 +23,46 @@
     path: "{{ item.path }}"
     state: directory
 
-- name: Write new .stignore to each Syncthing folder
+- name: Check if Syncthing config exists (Linux)
   become: true
   become_user: "{{ syncthing_user }}"
-  loop: "{{ syncthing_folders }}"
-  loop_control:
-    label: "{{ item.id }}"
-  ansible.builtin.copy:
-    dest: "{{ item.path }}/.stignore"
-    content: "{{ item.ignore | default('') }}"
-    mode: '0644'
+  register: syncthing_linux_conf_file
+  when: ansible_system == "Linux"
+  ansible.builtin.stat:
+    path: "$HOME/.config/syncthing/config.xml"
+
+- name: Check if Syncthing config exists (Windows)
+  become: true
+  become_user: "{{ syncthing_user }}"
+  register: syncthing_win_conf_file
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_stat:
+    path: "$env:LOCALAPPDATA\\Syncthing\\config.xml"
 
 - name: Generate Syncthing config (Linux)
   become: true
   become_user: "{{ syncthing_user }}"
   changed_when: false
-  when: ansible_system == "Linux"
+  when:
+    - ansible_system == "Linux"
+    - not syncthing_linux_conf_file.stat.exists
   ansible.builtin.shell:
-    cmd: >-
-      rm -rf $HOME/.local/state/syncthing &&
-      syncthing generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}
+    cmd: "syncthing generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}"
 
 - name: Generate Syncthing config (Windows)
   become: true
   become_user: "{{ syncthing_user }}"
   changed_when: false
-  when: ansible_system == "Win32NT"
+  when:
+    - ansible_system == "Win32NT"
+    - not syncthing_win_conf_file.stat.exists
   ansible.windows.win_shell: |
     $installPath = "$env:LOCALAPPDATA\Programs\Syncthing"
     $configPath = "$env:LOCALAPPDATA\Syncthing"
 
-    if (Test-Path -Path $configPath) {
-        Remove-Item -Path $configPath -Recurse -Force
-    }
-
     New-Item -ItemType Directory -Path $configPath -Force | Out-Null
 
     & "$installPath\syncthing.exe" generate --no-default-folder --gui-user={{ syncthing_gui_user }} --gui-password={{ syncthing_gui_password }}
-
-- name: Fetch Syncthing config (Linux)
-  become: true
-  become_user: "{{ syncthing_user }}"
-  register: syncthing_config_linux_slurped
-  when: ansible_system == "Linux"
-  ansible.builtin.slurp:
-    src: $HOME/.local/state/syncthing/config.xml
-
-- name: Fetch Syncthing config (Windows)
-  become: true
-  become_user: "{{ syncthing_user }}"
-  register: syncthing_config_windows_slurped
-  when: ansible_system == "Win32NT"
-  ansible.windows.slurp:
-    src: "%LOCALAPPDATA%\\Syncthing\\config.xml"
-
-- name: Decode Syncthing config content
-  ansible.builtin.set_fact:
-    syncthing_config_original: >-
-      {{ 
-        syncthing_config_linux_slurped.content | default(syncthing_config_windows_slurped.content)
-        | ansible.builtin.b64decode
-        | ansible.utils.from_xml
-      }}
-
-- name: Create new Syncthing device config
-  ansible.builtin.set_fact:
-    syncthing_map_device: >-
-      {{
-        {
-          inventory_hostname: syncthing_config_original.configuration.device
-            | combine({
-                '@name': inventory_hostname,
-                'autoAcceptFolders': 'false',
-              })
-        }
-      }}
-
-- name: Gather Syncthing device configs from all hosts
-  run_once: true
-  ansible.builtin.set_fact:
-    syncthing_comb_conf_device: >-
-      {{
-        syncthing_comb_conf_device
-        | default({})
-        | combine(ansible_play_hosts_all
-          | map('extract', hostvars)
-          | selectattr('syncthing_map_device', 'defined')
-          | map(attribute='syncthing_map_device'),
-          recursive=True)
-      }}
-
-- name: Create Syncthing folder devices map
-  loop: "{{ syncthing_folders }}"
-  loop_control:
-    label: "{{ item.id }}"
-  ansible.builtin.include_tasks: config/config-folder-device-map.yaml
-
-- name: Gather Syncthing folder devices map from all hosts
-  run_once: true
-  ansible.builtin.set_fact:
-    syncthing_comb_map_folder_device: >-
-      {{
-        syncthing_comb_map_folder_device
-        | default({})
-        | combine(ansible_play_hosts_all
-          | map('extract', hostvars)
-          | selectattr('syncthing_map_folder_device', 'defined')
-          | map(attribute='syncthing_map_folder_device'),
-          recursive=True, list_merge='prepend_rp')
-      }}
-
-- name: Create new Syncthing folder config
-  loop: "{{ syncthing_folders }}"
-  loop_control:
-    label: "{{ item.id }}"
-  ansible.builtin.include_tasks: config/config-folder.yaml
-
-- name: Merge all into final Syncthing config
-  ansible.builtin.set_fact:
-    syncthing_config_updated: >-
-      {{
-        syncthing_config_original
-        | combine({
-            'configuration': syncthing_config_original.configuration
-              | combine(syncthing_conf_device)
-              | combine(syncthing_conf_folder)
-              | combine({
-                  'gui': {
-                    'address': syncthing_gui_address,
-                  },
-                  'options': {
-                    'reconnectionIntervalS': '10',
-                    'startBrowser': 'false',
-                    'urAccepted': '-1',
-                    'crashReportingEnabled': 'false',
-                  }
-                }, recursive=True)
-          })
-      }}
-
-- name: Write final Syncthing config (Linux)
-  become: true
-  become_user: "{{ syncthing_user }}"
-  when: ansible_system == "Linux"
-  ansible.builtin.copy:
-    content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=False) }}"
-    dest: $HOME/.local/state/syncthing/config.xml
-    mode: "0600"
-
-- name: Write final Syncthing config (Windows)
-  become: true
-  become_user: "{{ syncthing_user }}"
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_copy:
-    content: "{{ syncthing_config_updated | ansible.utils.to_xml(indent='spaces', full_document=False) }}"
-    dest: "%LOCALAPPDATA%\\Syncthing\\config.xml"
-    force: true
 
 - name: Start Syncthing service (systemd)
   become: true
@@ -191,22 +75,6 @@
     daemon_reload: true
     masked: false
     enabled: true
-
-- name: Waiting Syncthing service to be ready
-  when:
-    - ansible_system == "Linux"
-    - ansible_service_mgr == "systemd"
-  ansible.builtin.pause:
-    seconds: 30
-
-- name: Restart Syncthing
-  become: true
-  when:
-    - ansible_system == "Linux"
-    - ansible_service_mgr == "systemd"
-  ansible.builtin.systemd:
-    name: syncthing@{{ syncthing_user }}
-    state: restarted
 
 - name: Start Syncthing service (Windows)
   become: true
