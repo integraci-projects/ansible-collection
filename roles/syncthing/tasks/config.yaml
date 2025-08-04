@@ -3,11 +3,9 @@
   become: true
   become_user: "{{ syncthing_user }}"
   loop: "{{ syncthing_folders }}"
-  loop_control:
-    label: "{{ item.id }}"
   when: ansible_system == "Linux"
   ansible.builtin.file:
-    path: "{{ item.path }}"
+    path: "{{ item }}"
     state: directory
     mode: '0755'
     recurse: true
@@ -16,11 +14,9 @@
   become: true
   become_user: "{{ syncthing_user }}"
   loop: "{{ syncthing_folders }}"
-  loop_control:
-    label: "{{ item.id }}"
   when: ansible_system == "Win32NT"
   ansible.windows.win_file:
-    path: "{{ item.path }}"
+    path: "{{ item }}"
     state: directory
 
 - name: Check if Syncthing config exists (Linux)
