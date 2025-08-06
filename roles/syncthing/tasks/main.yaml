@@ -1,6 +1,6 @@
 ---
 - name: Perform Syncthing installation tasks
-  when: syncthing_state == "present" 
+  when: syncthing_state == "install" 
   tags:
     - setup-all
     - setup-syncthing
@@ -15,7 +15,7 @@
       ansible.builtin.include_tasks: config.yaml
 
 - name: Perform Syncthing start tasks
-  when: syncthing_state == "started"
+  when: syncthing_state == "start"
   tags:
     - setup-all
     - setup-syncthing
@@ -24,7 +24,7 @@
       ansible.builtin.include_tasks: start.yaml
 
 - name: Perform Syncthing restart tasks
-  when: syncthing_state == "restarted"
+  when: syncthing_state == "restart"
   tags:
     - setup-all
     - setup-syncthing
@@ -33,7 +33,7 @@
       ansible.builtin.include_tasks: restart.yaml
 
 - name: Perform Syncthing stop tasks
-  when: syncthing_state == "stopped"
+  when: syncthing_state == "stop"
   tags:
     - setup-all
     - setup-syncthing

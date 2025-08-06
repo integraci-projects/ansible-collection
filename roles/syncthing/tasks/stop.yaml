@@ -16,7 +16,7 @@
     - ansible_service_mgr == "systemd"
   ansible.builtin.systemd_service:
     name: "{{ item }}"
-    state: stopped
+    state: stop
     enabled: false
 
 - name: Stop Syncthing service (Windows)
@@ -24,5 +24,5 @@
   when: ansible_system == "Win32NT"
   ansible.windows.win_service:
     name: syncthing
-    state: stopped
+    state: stop
     start_mode: disabled
