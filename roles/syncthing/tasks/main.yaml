@@ -1,6 +1,6 @@
 ---
 - name: Perform Syncthing installation tasks
-  when: syncthing_state == "present" or syncthing_state == "started" or syncthing_state == "restarted"
+  when: syncthing_state == "present" 
   tags:
     - setup-all
     - setup-syncthing
