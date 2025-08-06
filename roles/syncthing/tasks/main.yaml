@@ -33,7 +33,7 @@
       ansible.builtin.include_tasks: restart.yaml
 
 - name: Perform Syncthing stop tasks
-  when: syncthing_state == "stopped" or syncthing_state == "absent"
+  when: syncthing_state == "stopped"
   tags:
     - setup-all
     - setup-syncthing
