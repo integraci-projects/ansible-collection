@@ -6,6 +6,10 @@ syncthing_gui_password: "syncthing"
 
 syncthing_user: "{{ ansible_user }}"
 syncthing_password: "{{ ansible_password }}"
+
+# Syncthing state can be "present", "started", "restarted", "stopped", "absent"
+syncthing_state: "started"
+
 # Make sure to only specify folders that `syncthing_user` has access to
 # Use format:
 # - /path/to/folder # Path to the folder on the host, can be different on each host

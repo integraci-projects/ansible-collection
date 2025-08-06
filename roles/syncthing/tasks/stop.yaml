@@ -1,0 +1,28 @@
+- name: Get list of Syncthing services
+  become: true
+  register: syncthing_services
+  changed_when: false
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.shell: "systemctl list-units --type=service --all | grep 'syncthing@' | awk '{print $1}'"
+
+- name: Stop Syncthing services (systemd)
+  become: true
+  loop: "{{ syncthing_services.stdout_lines }}"
+  when:
+    - syncthing_services.stdout_lines | length > 0
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+
+- name: Stop Syncthing service (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_service:
+    name: syncthing
+    state: stopped
+    start_mode: disabled

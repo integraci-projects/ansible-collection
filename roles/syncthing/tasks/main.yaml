@@ -1,6 +1,6 @@
 ---
 - name: Perform Syncthing installation tasks
-  when: syncthing_enabled | bool
+  when: syncthing_state == "present" or syncthing_state == "started" or syncthing_state == "restarted"
   tags:
     - setup-all
     - setup-syncthing
@@ -14,8 +14,35 @@
     - name: Configure Syncthing
       ansible.builtin.include_tasks: config.yaml
 
+- name: Perform Syncthing start tasks
+  when: syncthing_state == "started"
+  tags:
+    - setup-all
+    - setup-syncthing
+  block:
+    - name: Start Syncthing service
+      ansible.builtin.include_tasks: start.yaml
+
+- name: Perform Syncthing restart tasks
+  when: syncthing_state == "restarted"
+  tags:
+    - setup-all
+    - setup-syncthing
+  block:
+    - name: Restart Syncthing service
+      ansible.builtin.include_tasks: restart.yaml
+
+- name: Perform Syncthing stop tasks
+  when: syncthing_state == "stopped" or syncthing_state == "absent"
+  tags:
+    - setup-all
+    - setup-syncthing
+  block:
+    - name: Stop Syncthing service
+      ansible.builtin.include_tasks: stop.yaml
+
 - name: Perform Syncthing uninstallation tasks
-  when: not syncthing_enabled | bool
+  when: syncthing_state == "absent"
   tags:
     - setup-all
     - setup-syncthing
