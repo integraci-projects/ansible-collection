@@ -16,7 +16,7 @@
   when: ansible_system == "Win32NT"
   chocolatey.chocolatey.win_chocolatey:
     name: "{{ item }}"
-    state: present
+    state: latest
 
 - name: Install Syncthing binary (Linux)
   become: true
