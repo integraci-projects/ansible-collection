@@ -5,7 +5,7 @@
     - ansible_service_mgr == "systemd"
   ansible.builtin.systemd_service:
     name: "syncthing@{{ syncthing_user }}"
-    state: start
+    state: started
     daemon_reload: true
     masked: false
     enabled: true
@@ -15,5 +15,5 @@
   when: ansible_system == "Win32NT"
   ansible.windows.win_service:
     name: syncthing
-    state: start
+    state: started
     start_mode: auto

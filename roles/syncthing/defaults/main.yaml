@@ -7,8 +7,8 @@ syncthing_gui_password: "syncthing"
 syncthing_user: "{{ ansible_user }}"
 syncthing_password: "{{ ansible_password }}"
 
-# Syncthing state can be "install", "start", "restart", "stop", "absent"
-syncthing_state: "start"
+# Syncthing state can be "present", "started", "restarted", "stopped", "absent"
+syncthing_state: "started"
 
 # Make sure to only specify folders that `syncthing_user` has access to
 # Use format:

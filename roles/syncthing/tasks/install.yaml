@@ -16,7 +16,7 @@
   when: ansible_system == "Win32NT"
   chocolatey.chocolatey.win_chocolatey:
     name: "{{ item }}"
-    state: install
+    state: present
 
 - name: Install Syncthing binary (Linux)
   become: true
@@ -88,5 +88,5 @@
       --logflags=3
     app_environment:  
       STTRACE: model,scanner,filesystem,events
-    state: install
+    state: present
 
