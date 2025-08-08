@@ -1,0 +1,37 @@
+---
+- name: Uninstall Promtail service config (systemd)
+  become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.file:
+    path: /usr/lib/systemd/system/promtail.service
+    state: absent
+
+- name: Uninstall Promtail service config (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  community.windows.win_nssm:
+    name: promtail
+    state: absent
+
+- name: Uninstall Promtail binary (Linux)
+  become: true
+  loop:
+    - /usr/bin/promtail
+    - ~/promtail.tar.gz
+    - ~/promtail
+  when: ansible_system == "Linux"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+
+- name: Uninstall Promtail binary (Windows)
+  become: true
+  loop:
+    - "%ProgramFiles%\\Promtail"
+    - "%TEMP%\\promtail_install"
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: absent

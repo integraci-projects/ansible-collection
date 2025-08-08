@@ -1,0 +1,86 @@
+---
+- name: Install required package (Linux)
+  become: true
+  loop:
+    - wget
+    - unzip
+  when: ansible_system == "Linux"
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest
+
+- name: Install required package (Windows)
+  become: true
+  loop:
+    - nssm
+  when: ansible_system == "Win32NT"
+  chocolatey.chocolatey.win_chocolatey:
+    name: "{{ item }}"
+    state: latest
+
+- name: Install Promtail binary (Linux)
+  become: true
+  changed_when: false
+  when: ansible_system == "Linux"
+  ansible.builtin.shell:
+    cmd: >-
+      mkdir -p ~/promtail &&
+      wget https://github.com/grafana/loki/releases/download/v{{ promtail_version }}/promtail-linux-{{ promtail_architecture }}.zip -O ~/promtail.zip &&
+      unzip ~/promtail.zip -d ~/promtail &&
+      rm -rf /usr/bin/promtail &&
+      mv ~/promtail/promtail-linux-{{ promtail_architecture }} /usr/bin/promtail &&
+      chmod +x /usr/bin/promtail &&
+      rm -rf ~/promtail.zip &&
+      rm -rf ~/promtail
+
+- name: Install Promtail binary (Windows)
+  become: true
+  changed_when: false
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_shell: |
+    $installPath = "$env:ProgramFiles\Promtail"
+    $tempPath = Join-Path $env:TEMP "promtail_install"
+    $zipFile = Join-Path $tempPath "promtail.zip"
+    $downloadUrl = "https://github.com/grafana/loki/releases/download/v{{ promtail_version }}/promtail-windows-{{ promtail_architecture }}.exe.zip"
+
+    New-Item -ItemType Directory -Path $installPath -Force | Out-Null
+    New-Item -ItemType Directory -Path $tempPath -Force | Out-Null
+
+    try {
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile -UseBasicParsing
+    } catch {
+        Remove-Item -Path $tempPath -Recurse -Force
+        exit 1
+    }
+
+    Expand-Archive -Path $zipFile -DestinationPath $tempPath -Force
+
+    $sourceExe = Get-ChildItem -Path $tempPath -Filter "promtail-windwos-{{ promtail_architecture }}.exe" -Recurse | Select-Object -First 1
+    if ($sourceExe) {
+        $destinationFile = Join-Path -Path $installPath -ChildPath "promtail.exe"
+
+        Move-Item -Path $sourceExe.FullName -Destination $destinationFile -Force
+    }
+
+    Remove-Item -Path $tempPath -Recurse -Force
+
+- name: Install Promtail service config (systemd)
+  become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.template:
+    src: "systemd/promtail.service.j2"
+    dest: /usr/lib/systemd/system/promtail.service
+    mode: "0644"
+
+- name: Install Promtail service config (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  community.windows.win_nssm:
+    name: promtail
+    display_name: Promtail
+    application: "%ProgramFiles%\\Promtail\\promtail.exe"
+    arguments: >-
+      -config.file %ProgramFiles%\Promtail\config.yml
+    state: present

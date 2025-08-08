@@ -1,0 +1,19 @@
+- name: Start Promtail service (systemd)
+  become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.systemd_service:
+    name: "promtail"
+    state: started
+    daemon_reload: true
+    masked: false
+    enabled: true
+
+- name: Start Promtail service (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_service:
+    name: promtail
+    state: started
+    start_mode: auto

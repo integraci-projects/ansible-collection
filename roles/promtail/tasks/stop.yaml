@@ -1,0 +1,28 @@
+- name: Get list of Promtail services
+  become: true
+  register: promtail_services
+  changed_when: false
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.shell: "systemctl list-units --type=service --all | grep 'promtail' | awk '{print $1}'"
+
+- name: Stop Promtail services (systemd)
+  become: true
+  loop: "{{ promtail_services.stdout_lines }}"
+  when:
+    - promtail_services.stdout_lines | length > 0
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+
+- name: Stop Promtail service (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_service:
+    name: promtail
+    state: stopped
+    start_mode: disabled

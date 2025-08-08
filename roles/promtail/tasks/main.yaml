@@ -1,0 +1,51 @@
+---
+- name: Perform Promtail installation tasks
+  when: promtail_state == "present" or promtail_state == "started" or promtail_state == "restarted"
+  tags:
+    - setup-all
+    - setup-promtail
+    - install-all
+    - install-promtail
+  block:
+    - name: Gather and set facts for Promtail installation
+      ansible.builtin.include_tasks: fact.yaml
+    - name: Install Promtail
+      ansible.builtin.include_tasks: install.yaml
+    - name: Configure Promtail
+      ansible.builtin.include_tasks: config.yaml
+
+- name: Perform Promtail start tasks
+  when: promtail_state == "started"
+  tags:
+    - setup-all
+    - setup-promtail
+  block:
+    - name: Start Promtail service
+      ansible.builtin.include_tasks: start.yaml
+
+- name: Perform Promtail restart tasks
+  when: promtail_state == "restarted"
+  tags:
+    - setup-all
+    - setup-promtail
+  block:
+    - name: Restart Promtail service
+      ansible.builtin.include_tasks: restart.yaml
+
+- name: Perform Promtail stop tasks
+  when: promtail_state == "stopped" or promtail_state == "absent"
+  tags:
+    - setup-all
+    - setup-promtail
+  block:
+    - name: Stop Promtail service
+      ansible.builtin.include_tasks: stop.yaml
+
+- name: Perform Promtail uninstallation tasks
+  when: promtail_state == "absent"
+  tags:
+    - setup-all
+    - setup-promtail
+  block:
+    - name: Uninstall Promtail
+      ansible.builtin.include_tasks: uninstall.yaml

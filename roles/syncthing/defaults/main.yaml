@@ -5,7 +5,6 @@ syncthing_gui_user: "syncthing"
 syncthing_gui_password: "syncthing"
 
 syncthing_user: "{{ ansible_user }}"
-syncthing_password: "{{ ansible_password }}"
 
 # Syncthing state can be "present", "started", "restarted", "stopped", "absent"
 syncthing_state: "started"
