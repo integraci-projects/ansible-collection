@@ -3,18 +3,22 @@
   become: true
   become_user: "{{ syncthing_user }}"
   loop: "{{ syncthing_folders }}"
-  when: ansible_system == "Linux"
+  when:
+    - ansible_system == "Linux"
+    - syncthing_folders | length > 0
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
     recurse: true
 
 - name: Create folders for Syncthing (Windows)
   become: true
   become_user: "{{ syncthing_user }}"
   loop: "{{ syncthing_folders }}"
-  when: ansible_system == "Win32NT"
+  when:
+    - ansible_system == "Win32NT"
+    - syncthing_folders | length > 0
   ansible.windows.win_file:
     path: "{{ item }}"
     state: directory
