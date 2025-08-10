@@ -91,6 +91,10 @@
     state: started
 
 
+- name: Set service description for Promtail (Windows)
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_shell: |
+    sc.exe description "promtail-custom" "Promtail log collector for Loki"
 
 
 - name: Install Promtail service config (systemd)
