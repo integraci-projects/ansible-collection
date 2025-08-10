@@ -14,8 +14,8 @@
   file:
     path: /opt/promtail-custom
     state: directory
-    owner: nobody
-    group: nogroup
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: '0755'
 
 - name: Copy binary promtail-custom (Linux)
@@ -23,8 +23,8 @@
   copy:
     src: promtail-custom
     dest: /opt/promtail-custom/promtail-custom
-    owner: nobody
-    group: nogroup
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: '0755'
 
 - name: Create data directory for promtail-custom (Linux)
@@ -33,8 +33,8 @@
   ansible.builtin.file:
     path: /opt/promtail-custom/data
     state: directory
-    owner: nobody
-    group: nogroup
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: '0755'
 
 - name: Install required package (Windows)
