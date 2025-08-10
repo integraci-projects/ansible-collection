@@ -75,10 +75,8 @@
 
 - name: Get Program Files path from Windows
   when: ansible_system == "Win32NT"
-  ansible.windows.win_environment:
-    state: present
-    name: ProgramFiles
-  register: programfiles_env
+  ansible.builtin.set_fact:
+    programfiles_env: "{{ lookup('env', 'ProgramFiles') }}"
 
 - name: Install Promtail service with NSSM (Windows)
   become: true
@@ -86,11 +84,12 @@
   community.windows.win_nssm:
     name: promtail-custom
     display_name: Promtail Custom
-    application: "{{ programfiles_env.value }}\\promtail-custom\\promtail-custom.exe"
-    arguments: '-config.file "{{ programfiles_env.value }}\\promtail-custom\\config.yml"'
-    app_directory: "{{ programfiles_env.value }}\\promtail-custom"
+    application: "{{ programfiles_env }}\\promtail-custom\\promtail-custom.exe"
+    arguments: '-config.file "{{ programfiles_env }}\\promtail-custom\\config.yml"'
+    app_directory: "{{ programfiles_env }}\\promtail-custom"
     start_mode: auto
     state: started
+
 
 
 
