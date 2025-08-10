@@ -12,7 +12,7 @@
   become: true
   when: ansible_system == "Win32NT"
   community.windows.win_nssm:
-    name: promtail
+    name: promtail-custom
     state: absent
 
 - name: Uninstall Promtail binary (Linux)

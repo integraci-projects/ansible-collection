@@ -23,6 +23,6 @@
   become: true
   when: ansible_system == "Win32NT"
   ansible.windows.win_service:
-    name: promtail
+    name: promtail-custom
     state: stopped
     start_mode: disabled
