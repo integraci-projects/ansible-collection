@@ -77,8 +77,8 @@
   become: true
   when: ansible_system == "Win32NT"
   community.windows.win_nssm:
-    name: promtail
-    display_name: Promtail
+    name: promtail-custom
+    display_name: Promtail Custom
     application: "%ProgramFiles%\\promtail-custom\\promtail-custom.exe"
     arguments: >-
       -config.file "%ProgramFiles%\\promtail-custom\\config.yml"
