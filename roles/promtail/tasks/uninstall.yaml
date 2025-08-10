@@ -5,7 +5,7 @@
     - ansible_system == "Linux"
     - ansible_service_mgr == "systemd"
   ansible.builtin.file:
-    path: /usr/lib/systemd/system/promtail.service
+    path: /usr/lib/systemd/system/promtail-custom.service
     state: absent
 
 - name: Uninstall Promtail service config (Windows)
