@@ -30,7 +30,7 @@
 - name: Create data directory for promtail-custom (Linux)
   when: ansible_system == "Linux"
   become: true
-  file:
+  ansible.builtin.file:
     path: /opt/promtail-custom/data
     state: directory
     owner: nobody
@@ -44,29 +44,32 @@
   when: ansible_system == "Win32NT"
   chocolatey.chocolatey.win_chocolatey:
     name: "{{ item }}"
-    state: present
+    state: latest
+
 
 - name: Create Promtail install directory (Windows)
   when: ansible_system == "Win32NT"
-  win_file:
+  ansible.windows.win_file:
     path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom"
     state: directory
 
 - name: Create data directory for promtail-custom (Windows)
   when: ansible_system == "Win32NT"
-  win_file:
+  ansible.windows.win_file:
     path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\data"
     state: directory
 
+
 - name: Copy Promtail custom binary (Windows)
   when: ansible_system == "Win32NT"
-  win_copy:
+  ansible.windows.win_copy:
     src: promtail.exe
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\promtail.exe"
 
+
 - name: Deploy Promtail config file (Windows)
   when: ansible_system == "Win32NT"
-  win_template:
+  ansible.windows.win_template:
     src: config.yml.j2
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
 
@@ -82,12 +85,13 @@
     start_mode: auto
     state: started
 
+
 - name: Install Promtail service config (systemd)
   become: true
   when:
     - ansible_system == "Linux"
     - ansible_service_mgr == "systemd"
-  template:
+  ansible.builtin.template:
     src: "systemd/promtail.service.j2"
     dest: /usr/lib/systemd/system/promtail.service
     mode: "0644"
@@ -95,10 +99,11 @@
 - name: Deploy Promtail config file from template
   when: ansible_system == "Linux"
   become: true
-  template:
+  ansible.builtin.template:
     src: "config.yml.j2"
-    dest: /opt/promtail-custom/config.yaml
+    dest: /opt/promtail-custom/config.yml
     owner: nobody
     group: nogroup
     mode: "0644"
   notify: Restart promtail
+
