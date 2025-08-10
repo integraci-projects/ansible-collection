@@ -4,7 +4,7 @@
     - ansible_system == "Linux"
     - ansible_service_mgr == "systemd"
   ansible.builtin.systemd_service:
-    name: "promtail"
+    name: promtail-custom
     state: restarted
     daemon_reload: true
     masked: false
