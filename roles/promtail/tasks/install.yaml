@@ -7,7 +7,7 @@
   when: ansible_system == "Linux"
   ansible.builtin.package:
     name: "{{ item }}"
-    state: latest
+    state: present
 
 - name: Create directory promtail-custom (Linux)
   when: ansible_system == "Linux"
@@ -30,14 +30,12 @@
 - name: Create data directory for promtail-custom (Linux)
   when: ansible_system == "Linux"
   become: true
-  ansible.builtin.file:
+  file:
     path: /opt/promtail-custom/data
     state: directory
     owner: nobody
     group: nogroup
     mode: '0755'
-
-
 
 - name: Install required package (Windows)
   become: true
@@ -46,32 +44,29 @@
   when: ansible_system == "Win32NT"
   chocolatey.chocolatey.win_chocolatey:
     name: "{{ item }}"
-    state: latest
-
+    state: present
 
 - name: Create Promtail install directory (Windows)
   when: ansible_system == "Win32NT"
-  ansible.windows.win_file:
+  win_file:
     path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom"
     state: directory
 
 - name: Create data directory for promtail-custom (Windows)
   when: ansible_system == "Win32NT"
-  ansible.windows.win_file:
+  win_file:
     path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\data"
     state: directory
 
-
 - name: Copy Promtail custom binary (Windows)
   when: ansible_system == "Win32NT"
-  ansible.windows.win_copy:
+  win_copy:
     src: promtail.exe
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\promtail.exe"
 
-
 - name: Deploy Promtail config file (Windows)
   when: ansible_system == "Win32NT"
-  ansible.windows.win_template:
+  win_template:
     src: config.yml.j2
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
 
@@ -87,13 +82,12 @@
     start_mode: auto
     state: started
 
-
 - name: Install Promtail service config (systemd)
   become: true
   when:
     - ansible_system == "Linux"
     - ansible_service_mgr == "systemd"
-  ansible.builtin.template:
+  template:
     src: "systemd/promtail.service.j2"
     dest: /usr/lib/systemd/system/promtail.service
     mode: "0644"
@@ -101,11 +95,10 @@
 - name: Deploy Promtail config file from template
   when: ansible_system == "Linux"
   become: true
-  ansible.builtin.template:
+  template:
     src: "config.yml.j2"
     dest: /opt/promtail-custom/config.yaml
     owner: nobody
     group: nogroup
     mode: "0644"
   notify: Restart promtail
-
