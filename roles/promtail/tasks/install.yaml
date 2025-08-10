@@ -92,7 +92,7 @@
     - ansible_system == "Linux"
     - ansible_service_mgr == "systemd"
   ansible.builtin.template:
-    src: "systemd/promtail.service.j2"
+    src: "systemd/promtail-custom.service.j2"
     dest: /usr/lib/systemd/system/promtail.service
     mode: "0644"
 
