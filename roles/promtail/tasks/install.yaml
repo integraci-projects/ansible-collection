@@ -50,13 +50,13 @@
 - name: Create Promtail install directory (Windows)
   when: ansible_system == "Win32NT"
   ansible.windows.win_file:
-    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom"
+    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail"
     state: directory
 
 - name: Create data directory for promtail-custom (Windows)
   when: ansible_system == "Win32NT"
   ansible.windows.win_file:
-    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\data"
+    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail\\data"
     state: directory
 
 
@@ -64,14 +64,14 @@
   when: ansible_system == "Win32NT"
   ansible.windows.win_copy:
     src: promtail.exe
-    dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\promtail.exe"
+    dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail\\promtail.exe"
 
 
 - name: Deploy Promtail config file (Windows)
   when: ansible_system == "Win32NT"
   ansible.windows.win_template:
     src: config.yml.j2
-    dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
+    dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail\\config.yml"
 
 - name: Install Promtail service with NSSM (Windows)
   become: true
@@ -79,9 +79,9 @@
   community.windows.win_nssm:
     name: promtail
     display_name: Promtail
-    application: "%ProgramFiles%\\promtail-custom\\promtail.exe"
+    application: "%ProgramFiles%\\promtail\\promtail.exe"
     arguments: >-
-      -config.file "%ProgramFiles%\\promtail-custom\\config.yml"
+      -config.file "%ProgramFiles%\\promtail\\config.yml"
     start_mode: auto
     state: started
 
