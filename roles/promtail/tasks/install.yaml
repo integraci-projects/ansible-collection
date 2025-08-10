@@ -9,6 +9,36 @@
     name: "{{ item }}"
     state: latest
 
+- name: Create directory promtail-custom (Linux)
+  when: ansible_system == "Linux"
+  file:
+    path: /opt/promtail-custom
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: '0755'
+
+- name: Copy binary promtail-custom (Linux)
+  when: ansible_system == "Linux"
+  copy:
+    src: promtail-custom
+    dest: /opt/promtail-custom/promtail-custom
+    owner: nobody
+    group: nogroup
+    mode: '0755'
+
+- name: Create data directory for promtail-custom (Linux)
+  when: ansible_system == "Linux"
+  become: true
+  ansible.builtin.file:
+    path: /opt/promtail-custom/data
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: '0755'
+
+
+
 - name: Install required package (Windows)
   become: true
   loop:
@@ -18,51 +48,45 @@
     name: "{{ item }}"
     state: latest
 
-- name: Install Promtail binary (Linux)
-  become: true
-  changed_when: false
-  when: ansible_system == "Linux"
-  ansible.builtin.shell:
-    cmd: >-
-      mkdir -p ~/promtail &&
-      wget https://github.com/grafana/loki/releases/download/v{{ promtail_version }}/promtail-linux-{{ promtail_architecture }}.zip -O ~/promtail.zip &&
-      unzip ~/promtail.zip -d ~/promtail &&
-      rm -rf /usr/bin/promtail &&
-      mv ~/promtail/promtail-linux-{{ promtail_architecture }} /usr/bin/promtail &&
-      chmod +x /usr/bin/promtail &&
-      rm -rf ~/promtail.zip &&
-      rm -rf ~/promtail
 
-- name: Install Promtail binary (Windows)
-  become: true
-  changed_when: false
+- name: Create Promtail install directory (Windows)
   when: ansible_system == "Win32NT"
-  ansible.windows.win_shell: |
-    $installPath = "$env:ProgramFiles\Promtail"
-    $tempPath = Join-Path $env:TEMP "promtail_install"
-    $zipFile = Join-Path $tempPath "promtail.zip"
-    $downloadUrl = "https://github.com/grafana/loki/releases/download/v{{ promtail_version }}/promtail-windows-{{ promtail_architecture }}.exe.zip"
+  ansible.windows.win_file:
+    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom"
+    state: directory
 
-    New-Item -ItemType Directory -Path $installPath -Force | Out-Null
-    New-Item -ItemType Directory -Path $tempPath -Force | Out-Null
+- name: Create data directory for promtail-custom (Windows)
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_file:
+    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\data"
+    state: directory
 
-    try {
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $zipFile -UseBasicParsing
-    } catch {
-        Remove-Item -Path $tempPath -Recurse -Force
-        exit 1
-    }
 
-    Expand-Archive -Path $zipFile -DestinationPath $tempPath -Force
+- name: Copy Promtail custom binary (Windows)
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_copy:
+    src: promtail.exe
+    dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\promtail.exe"
 
-    $sourceExe = Get-ChildItem -Path $tempPath -Filter "promtail-windwos-{{ promtail_architecture }}.exe" -Recurse | Select-Object -First 1
-    if ($sourceExe) {
-        $destinationFile = Join-Path -Path $installPath -ChildPath "promtail.exe"
 
-        Move-Item -Path $sourceExe.FullName -Destination $destinationFile -Force
-    }
+- name: Deploy Promtail config file (Windows)
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_template:
+    src: config.yml.j2
+    dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
 
-    Remove-Item -Path $tempPath -Recurse -Force
+- name: Install Promtail service with NSSM (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  community.windows.win_nssm:
+    name: promtail
+    display_name: Promtail
+    application: "%ProgramFiles%\\promtail-custom\\promtail.exe"
+    arguments: >-
+      -config.file "%ProgramFiles%\\promtail-custom\\config.yml"
+    start_mode: auto
+    state: started
+
 
 - name: Install Promtail service config (systemd)
   become: true
@@ -74,13 +98,14 @@
     dest: /usr/lib/systemd/system/promtail.service
     mode: "0644"
 
-- name: Install Promtail service config (Windows)
+- name: Deploy Promtail config file from template
+  when: ansible_system == "Linux"
   become: true
-  when: ansible_system == "Win32NT"
-  community.windows.win_nssm:
-    name: promtail
-    display_name: Promtail
-    application: "%ProgramFiles%\\Promtail\\promtail.exe"
-    arguments: >-
-      -config.file %ProgramFiles%\Promtail\config.yml
-    state: present
+  ansible.builtin.template:
+    src: "config.yml.j2"
+    dest: /opt/promtail-custom/config.yaml
+    owner: nobody
+    group: nogroup
+    mode: "0644"
+  notify: Restart promtail
+

@@ -1,0 +1,7 @@
+log_file: "/var/log/syncthing/syncthing.log"
+filter_regex: "map\\[.*action:(modified|deleted)"
+job: "syncthing"
+vm_name: "{{ vm_name }}"
+#loki_url: "https://loki.integraci.co/loki/api/v1/push"
+loki_url: "http://172.16.10.26:3100/loki/api/v1/push"
+storage_file: "./data/storage_file.json"
