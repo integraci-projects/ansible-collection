@@ -73,17 +73,25 @@
     src: config.yml.j2
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
 
+- name: Get Program Files path from Windows
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_environment:
+    state: present
+    name: ProgramFiles
+  register: programfiles_env
+
 - name: Install Promtail service with NSSM (Windows)
   become: true
   when: ansible_system == "Win32NT"
   community.windows.win_nssm:
     name: promtail-custom
     display_name: Promtail Custom
-    application: "%ProgramFiles%\\promtail-custom\\promtail-custom.exe"
-    arguments: >-
-      -config.file "%ProgramFiles%\\promtail-custom\\config.yml"
+    application: "{{ programfiles_env.value }}\\promtail-custom\\promtail-custom.exe"
+    arguments: '-config.file "{{ programfiles_env.value }}\\promtail-custom\\config.yml"'
+    app_directory: "{{ programfiles_env.value }}\\promtail-custom"
     start_mode: auto
     state: started
+
 
 
 - name: Install Promtail service config (systemd)
