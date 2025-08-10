@@ -93,7 +93,7 @@
     - ansible_service_mgr == "systemd"
   ansible.builtin.template:
     src: "systemd/promtail-custom.service.j2"
-    dest: /usr/lib/systemd/system/promtail.service
+    dest: /usr/lib/systemd/system/promtail-custom.service
     mode: "0644"
 
 - name: Deploy Promtail config file from template
