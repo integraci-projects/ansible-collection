@@ -1,38 +1,38 @@
-- name: Get list of Promtail services (Linux)
+- name: Get list of custom Promtail services (Linux)
   become: true
   register: promtail_services
   changed_when: false
   when:
-    - ansible_system is defined
     - ansible_system == "Linux"
-    - ansible_service_mgr is defined
     - ansible_service_mgr == "systemd"
-  ansible.builtin.shell: >
-    systemctl list-units --type=service --all --no-legend --plain |
-    grep '^promtail-custom.service' | awk '{print $1}' | tr -d '\r'
+  ansible.builtin.shell: "systemctl list-units --type=service --all | grep 'promtail-custom' | awk '{print $1}'"
 
 - name: Stop Promtail services (systemd / Linux)
   become: true
   loop: "{{ promtail_services.stdout_lines | default([]) }}"
   when:
-    - promtail_services is defined
     - promtail_services.stdout_lines | length > 0
-    - ansible_system is defined
     - ansible_system == "Linux"
-    - ansible_service_mgr is defined
     - ansible_service_mgr == "systemd"
   ansible.builtin.systemd_service:
     name: "{{ item }}"
     state: stopped
     enabled: false
 
-
 - name: Stop Promtail service (Windows)
   become: true
   when:
-    - ansible_system is defined
     - ansible_system == "Win32NT"
   ansible.windows.win_service:
     name: promtail-custom
     state: stopped
     start_mode: disabled
+
+- name: Kill Promtail process (Windows)
+  become: true
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_shell: |
+    $processes = Get-Process -Name promtail-custom -ErrorAction SilentlyContinue
+    if ($processes) {
+      Stop-Process -Id $processes.Id -Force
+    }
