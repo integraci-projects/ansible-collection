@@ -85,7 +85,7 @@
     name: promtail-custom
     display_name: Promtail Custom
     application: "{{ programfiles_env }}\\promtail-custom\\promtail-custom.exe"
-    arguments: '-config.file "{{ programfiles_env }}\\promtail-custom\\config.yml"'
+    arguments: -config.file "{{ programfiles_env }}\\promtail-custom\\config.yml"
     app_directory: "{{ programfiles_env }}\\promtail-custom"
     start_mode: auto
     state: started
