@@ -27,13 +27,3 @@
     name: promtail-custom
     state: stopped
     start_mode: disabled
-
-- name: Kill Promtail process (Windows)
-  become: true
-  when: ansible_system == "Win32NT"
-  ignore_errors: true
-  ansible.windows.win_shell: |
-    $processes = Get-Process -Name promtail-custom -ErrorAction SilentlyContinue
-    if ($processes) {
-      Stop-Process -Id $processes.Id -Force
-    }
