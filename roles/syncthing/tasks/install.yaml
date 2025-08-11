@@ -77,7 +77,8 @@
   when: ansible_system == "Win32NT"
   community.windows.win_nssm:
     name: syncthing
-    display_name: Syncthing
+    display_name: Syncthing for {{ syncthing_user }}
+    description: Open Source Continuous File Synchronization for {{ syncthing_user }}
     application: "%LOCALAPPDATA%\\Programs\\Syncthing\\syncthing.exe"
     arguments: >-
       serve

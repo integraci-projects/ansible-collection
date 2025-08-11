@@ -64,6 +64,7 @@
   community.windows.win_nssm:
     name: promtail-custom
     display_name: Promtail Custom
+    description: Log Agent for Loki
     application: "%ProgramFiles%\\Promtail Custom\\promtail-custom.exe"
     working_directory: "%ProgramFiles%\\Promtail Custom"
     start_mode: auto
