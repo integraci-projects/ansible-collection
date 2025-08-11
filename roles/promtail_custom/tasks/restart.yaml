@@ -1,4 +1,4 @@
-- name: Start Promtail service (systemd)
+- name: Restart Promtail service (systemd)
   become: true
   when:
     - ansible_system == "Linux"
@@ -10,7 +10,7 @@
     masked: false
     enabled: true
 
-- name: Start Promtail service (Windows)
+- name: Restart Promtail service (Windows)
   become: true
   when: ansible_system == "Win32NT"
   ansible.windows.win_service:

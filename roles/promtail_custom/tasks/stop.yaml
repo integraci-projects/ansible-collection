@@ -1,4 +1,4 @@
-- name: Get list of custom Promtail services (Linux)
+- name: Get list of custom Promtail services (systemd)
   become: true
   register: promtail_services
   changed_when: false
@@ -7,7 +7,7 @@
     - ansible_service_mgr == "systemd"
   ansible.builtin.shell: "systemctl list-units --type=service --all | grep 'promtail-custom' | awk '{print $1}'"
 
-- name: Stop Promtail services (systemd / Linux)
+- name: Stop Promtail services (systemd)
   become: true
   loop: "{{ promtail_services.stdout_lines | default([]) }}"
   when:

@@ -1,4 +1,4 @@
-- name: Get list of Syncthing services
+- name: Get list of Syncthing services (systemd)
   become: true
   register: syncthing_services
   changed_when: false

@@ -1,4 +1,4 @@
-- name: Start Syncthing service (systemd)
+- name: Restart Syncthing service (systemd)
   become: true
   when:
     - ansible_system == "Linux"
@@ -10,7 +10,7 @@
     masked: false
     enabled: true
 
-- name: Start Syncthing service (Windows)
+- name: Restart Syncthing service (Windows)
   become: true
   when: ansible_system == "Win32NT"
   ansible.windows.win_service:
