@@ -29,6 +29,7 @@
   loop:
     - "%ProgramFiles%\\Promtail Custom"
   when: ansible_system == "Win32NT"
-  ansible.windows.win_shell: Remove-Item -path "{{ item }}" -recurse -force
-  args:
-    removes: "{{ item }}"
+  ignore_errors: true
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: absent
