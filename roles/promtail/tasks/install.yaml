@@ -116,7 +116,6 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: "0644"
-  notify: Restart promtail
 
 - name: Start Promtail service (Linux)
   become: true
