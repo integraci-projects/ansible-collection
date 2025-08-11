@@ -113,8 +113,8 @@
   ansible.builtin.template:
     src: "config.yml.j2"
     dest: /opt/promtail-custom/config.yml
-    owner: nobody
-    group: nogroup
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     mode: "0644"
   notify: Restart promtail
 
