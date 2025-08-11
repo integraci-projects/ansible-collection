@@ -67,8 +67,17 @@
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\promtail-custom.exe"
 
 
-- name: Deploy Promtail config file (Windows)
+- name: Checking config.yml (Windows)
   when: ansible_system == "Win32NT"
+  ansible.windows.win_stat:
+    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
+  register: promtail_config_stat_win
+
+
+- name: Deploy Promtail config file (Windows)
+  when:
+    - ansible_system == "Win32NT"
+    - not promtail_config_stat_win.stat.exists
   ansible.windows.win_template:
     src: config.yml.j2
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
