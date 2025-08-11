@@ -1,5 +1,3 @@
-promtail_version: "3.5.3"
-
 # Promtail state can be "present", "started", "restarted", "stopped", "absent"
 promtail_state: "started"
 

@@ -1,42 +1,4 @@
 ---
-- name: Install required package (Linux)
-  become: true
-  loop:
-    - wget
-    - unzip
-  when: ansible_system == "Linux"
-  ansible.builtin.package:
-    name: "{{ item }}"
-    state: present
-
-- name: Create directory promtail-custom (Linux)
-  when: ansible_system == "Linux"
-  file:
-    path: /opt/promtail-custom
-    state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0755'
-
-- name: Copy binary promtail-custom (Linux)
-  when: ansible_system == "Linux"
-  copy:
-    src: promtail-custom
-    dest: /opt/promtail-custom/promtail-custom
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0755'
-
-- name: Create data directory for promtail-custom (Linux)
-  when: ansible_system == "Linux"
-  become: true
-  ansible.builtin.file:
-    path: /opt/promtail-custom/data
-    state: directory
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0755'
-
 - name: Install required package (Windows)
   become: true
   loop:
@@ -46,91 +8,45 @@
     name: "{{ item }}"
     state: latest
 
+- name: Create folders for custom Promtail (Linux)
+  become: true
+  loop:
+    - /opt/promtail-custom
+    - /opt/promtail-custom/data
+  when: ansible_system == "Linux"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    recurse: true
+    owner: nobody
+    group: nogroup
 
-- name: Create Promtail install directory (Windows)
+- name: Create folders for custom Promtail (Windows)
+  become: true
+  loop:
+    - "%ProgramFiles%\\Promtail Custom"
+    - "%ProgramFiles%\\Promtail Custom\\data"
   when: ansible_system == "Win32NT"
   ansible.windows.win_file:
-    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom"
+    path: "{{ item }}"
     state: directory
 
-- name: Create data directory for promtail-custom (Windows)
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_file:
-    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\data"
-    state: directory
+- name: Install custom Promtail binary (Linux)
+  become: true
+  when: ansible_system == "Linux"
+  ansible.builtin.copy:
+    src: promtail-custom
+    dest: /opt/promtail-custom/promtail-custom
+    mode: "0755"
+    owner: nobody
+    group: nogroup
 
-
-- name: Copy Promtail custom binary (Windows)
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_copy:
-    src: "{{ role_path }}/files/promtail-custom.exe"
-    dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\promtail-custom.exe"
-
-
-- name: Checking config.yml (Windows)
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_stat:
-    path: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
-  register: promtail_config_stat_win
-
-
-- name: Deploy Promtail config file (Windows)
-  when:
-    - ansible_system == "Win32NT"
-    - not promtail_config_stat_win.stat.exists
-  ansible.windows.win_template:
-    src: config.yml.j2
-    dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
-
-
-- name: Stop Promtail service if exists (Windows)
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_service:
-    name: promtail-custom
-    state: stopped
-  ignore_errors: true
-
-- name: Kill any running promtail-custom.exe process
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_shell: |
-    Get-Process promtail-custom -ErrorAction SilentlyContinue | Stop-Process -Force
-  ignore_errors: true
-
-- name: Remove old Promtail service (Windows)
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_service:
-    name: promtail-custom
-    state: absent
-  ignore_errors: true  
-
-- name: Wait for Windows to release deleted service
-  when: ansible_system == "Win32NT"
-  ansible.builtin.pause:
-    seconds: 5
-
-- name: Get Program Files path from Windows
-  when: ansible_system == "Win32NT"
-  ansible.builtin.set_fact:
-    programfiles_env: "{{ lookup('env', 'ProgramFiles') }}"
-
-- name: Install Promtail service with NSSM (Windows)
+- name: Install custom Promtail binary (Windows)
   become: true
   when: ansible_system == "Win32NT"
-  community.windows.win_nssm:
-    name: promtail-custom
-    display_name: Promtail Custom
-    application: "{{ programfiles_env }}\\promtail-custom\\promtail-custom.exe"
-    arguments: -config.file "{{ programfiles_env }}\\promtail-custom\\config.yml"
-    app_directory: "{{ programfiles_env }}\\promtail-custom"
-    start_mode: auto
-    state: started
-
-
-- name: Set service description for Promtail (Windows)
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_shell: |
-    sc.exe description "promtail-custom" "Promtail log collector for Loki"
-
+  ansible.windows.win_copy:
+    src: promtail-custom.exe
+    dest: "%ProgramFiles%\\Promtail Custom\\promtail-custom.exe"
 
 - name: Install Promtail service config (systemd)
   become: true
@@ -142,31 +58,13 @@
     dest: /usr/lib/systemd/system/promtail-custom.service
     mode: "0644"
 
-- name: Deploy Promtail config file from template
-  when: ansible_system == "Linux"
-  become: true
-  ansible.builtin.template:
-    src: "config.yml.j2"
-    dest: /opt/promtail-custom/config.yml
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: "0644"
-
-- name: Start Promtail service (Linux)
-  become: true
-  when:
-    - ansible_system == "Linux"
-    - ansible_service_mgr == "systemd"
-  ansible.builtin.systemd_service:
-    name: promtail-custom
-    daemon_reload: true
-    enabled: true
-
-- name: Start Promtail service (Windows)
+- name: Install Promtail service config (Windows)
   become: true
   when: ansible_system == "Win32NT"
-  ansible.windows.win_service:
+  community.windows.win_nssm:
     name: promtail-custom
+    display_name: Promtail Custom
+    application: "%ProgramFiles%\\Promtail Custom\\promtail-custom.exe"
+    working_directory: "%ProgramFiles%\\Promtail Custom"
     start_mode: auto
-
-
+    state: present

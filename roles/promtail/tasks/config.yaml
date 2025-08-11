@@ -1,35 +1,17 @@
 ---
-- name: Create folders for Syncthing (Linux)
-  become: true
-  loop:
-    - /etc/promtail
-  when: ansible_system == "Linux"
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    recurse: true
-
-- name: Create folders for Syncthing (Windows)
-  become: true
-  loop:
-    - "%ProgramFiles%\\Promtail"
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_file:
-    path: "{{ item }}"
-    state: directory
-
 - name: Write Promtail config (Linux)
   become: true
   when: ansible_system == "Linux"
   ansible.builtin.copy:
     content: "{{ promtail_config | ansible.builtin.to_yaml }}"
-    dest: /etc/promtail/config.yml
-    mode: "0600"
+    dest: /opt/promtail-custom/config.yml
+    mode: "0644"
+    owner: nobody
+    group: nogroup
 
 - name: Write Promtail config (Windows)
   become: true
   when: ansible_system == "Win32NT"
   ansible.windows.win_copy:
     content: "{{ promtail_config | ansible.builtin.to_yaml }}"
-    dest: "%ProgramFiles%\\Promtail\\config.yml"
-    force: true
+    dest: "%ProgramFiles%\\Promtail Custom\\config.yml"
