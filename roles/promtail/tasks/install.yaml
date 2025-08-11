@@ -74,6 +74,19 @@
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
 
 
+- name: Stop Promtail service if exists (Windows)
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_service:
+    name: promtail-custom
+    state: stopped
+  ignore_errors: true
+
+- name: Kill any running promtail-custom.exe process
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_shell: |
+    Get-Process promtail-custom -ErrorAction SilentlyContinue | Stop-Process -Force
+  ignore_errors: true
+
 - name: Remove old Promtail service (Windows)
   when: ansible_system == "Win32NT"
   ansible.windows.win_service:
