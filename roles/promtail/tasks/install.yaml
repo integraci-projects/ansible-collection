@@ -73,6 +73,19 @@
     src: config.yml.j2
     dest: "{{ lookup('env', 'ProgramFiles') }}\\promtail-custom\\config.yml"
 
+
+- name: Remove old Promtail service (Windows)
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_service:
+    name: promtail-custom
+    state: absent
+  ignore_errors: true  
+
+- name: Wait for Windows to release deleted service
+  when: ansible_system == "Win32NT"
+  ansible.builtin.pause:
+    seconds: 5
+
 - name: Get Program Files path from Windows
   when: ansible_system == "Win32NT"
   ansible.builtin.set_fact:
