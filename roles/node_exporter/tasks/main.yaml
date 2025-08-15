@@ -11,8 +11,6 @@
       ansible.builtin.include_tasks: fact.yaml
     - name: Install Node Exporter
       ansible.builtin.include_tasks: install.yaml
-    - name: Configure Node Exporter
-      ansible.builtin.include_tasks: config.yaml
 
 - name: Perform Node Exporter start tasks
   when: node_exporter_state == "started"

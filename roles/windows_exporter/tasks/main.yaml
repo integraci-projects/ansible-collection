@@ -11,8 +11,6 @@
       ansible.builtin.include_tasks: fact.yaml
     - name: Install Windows Exporter
       ansible.builtin.include_tasks: install.yaml
-    - name: Configure Windows Exporter
-      ansible.builtin.include_tasks: config.yaml
 
 - name: Perform Windows Exporter start tasks
   when: windows_exporter_state == "started"
