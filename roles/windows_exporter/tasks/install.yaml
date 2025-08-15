@@ -3,7 +3,6 @@
   become: true
   loop:
     - "%ProgramFiles%\\Windows Exporter"
-    - "%ProgramFiles%\\Windows Exporter\\data"
   when: ansible_system == "Win32NT"
   ansible.windows.win_file:
     path: "{{ item }}"
