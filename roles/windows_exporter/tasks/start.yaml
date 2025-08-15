@@ -1,0 +1,7 @@
+- name: Start Windows Exporter service
+  become: true
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_service:
+    name: windows-exporter
+    state: started
+    start_mode: auto

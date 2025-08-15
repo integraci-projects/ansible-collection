@@ -1,0 +1,5 @@
+# Node Exporter state can be "present", "started", "restarted", "stopped", "absent"
+node_exporter_state: "started"
+
+# List of Node Exporter flags
+node_exporter_flags: []

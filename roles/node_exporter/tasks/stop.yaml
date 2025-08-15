@@ -1,0 +1,20 @@
+- name: Get list of Node Exporter services (systemd)
+  become: true
+  register: node_exporter_services
+  changed_when: false
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.shell: "systemctl list-units --type=service --all | grep 'node-exporter' | awk '{print $1}'"
+
+- name: Stop Node Exporter services (systemd)
+  become: true
+  loop: "{{ node_exporter_services.stdout_lines | default([]) }}"
+  when:
+    - node_exporter_services.stdout_lines | length > 0
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false

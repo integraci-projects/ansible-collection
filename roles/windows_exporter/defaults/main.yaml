@@ -1,0 +1,5 @@
+# Windows Exporter state can be "present", "started", "restarted", "stopped", "absent"
+windows_exporter_state: "started"
+
+# List of Windows Exporter flags
+windows_exporter_flags: []

@@ -1,0 +1,17 @@
+---
+- name: Uninstall Windows Exporter service config
+  become: true
+  when: ansible_system == "Win32NT"
+  community.windows.win_nssm:
+    name: windows-exporter
+    state: absent
+
+- name: Uninstall Windows Exporter folders and binary
+  become: true
+  loop:
+    - "%ProgramFiles%\\Windows Exporter"
+  when: ansible_system == "Win32NT"
+  ignore_errors: true
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: absent

@@ -1,0 +1,29 @@
+---
+- name: Create folders for Windows Exporter
+  become: true
+  loop:
+    - "%ProgramFiles%\\Windows Exporter"
+    - "%ProgramFiles%\\Windows Exporter\\data"
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: directory
+
+- name: Install Windows Exporter binary
+  become: true
+  when: ansible_system == "Win32NT"
+  ansible.windows.win_copy:
+    src: windows_exporter-{{ windows_exporter_architecture }}.exe
+    dest: "%ProgramFiles%\\Windows Exporter\\windows_exporter.exe"
+
+- name: Install Windows Exporter service config
+  become: true
+  when: ansible_system == "Win32NT"
+  community.windows.win_nssm:
+    name: windows-exporter
+    display_name: Windows Exporter
+    description: Prometheus Windows Exporter
+    application: "%ProgramFiles%\\Windows Exporter\\windows_exporter.exe"
+    working_directory: "%ProgramFiles%\\Windows Exporter"
+    start_mode: auto
+    state: present

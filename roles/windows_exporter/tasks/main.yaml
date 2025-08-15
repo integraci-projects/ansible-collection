@@ -1,0 +1,51 @@
+---
+- name: Perform Windows Exporter installation tasks
+  when: windows_exporter_state == "present" or windows_exporter_state == "started" or windows_exporter_state == "restarted"
+  tags:
+    - setup-all
+    - setup-windows-exporter
+    - install-all
+    - install-windows-exporter
+  block:
+    - name: Gather and set facts for Windows Exporter installation
+      ansible.builtin.include_tasks: fact.yaml
+    - name: Install Windows Exporter
+      ansible.builtin.include_tasks: install.yaml
+    - name: Configure Windows Exporter
+      ansible.builtin.include_tasks: config.yaml
+
+- name: Perform Windows Exporter start tasks
+  when: windows_exporter_state == "started"
+  tags:
+    - setup-all
+    - setup-windows-exporter
+  block:
+    - name: Start Windows Exporter service
+      ansible.builtin.include_tasks: start.yaml
+
+- name: Perform Windows Exporter restart tasks
+  when: windows_exporter_state == "restarted"
+  tags:
+    - setup-all
+    - setup-windows-exporter
+  block:
+    - name: Restart Windows Exporter service
+      ansible.builtin.include_tasks: restart.yaml
+
+- name: Perform Windows Exporter stop tasks
+  when: windows_exporter_state == "stopped" or windows_exporter_state == "absent"
+  tags:
+    - setup-all
+    - setup-windows-exporter
+  block:
+    - name: Stop Windows Exporter service
+      ansible.builtin.include_tasks: stop.yaml
+
+- name: Perform Windows Exporter uninstallation tasks
+  when: windows_exporter_state == "absent"
+  tags:
+    - setup-all
+    - setup-windows-exporter
+  block:
+    - name: Uninstall Windows Exporter
+      ansible.builtin.include_tasks: uninstall.yaml

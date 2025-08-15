@@ -1,0 +1,11 @@
+- name: Start Node Exporter service (systemd)
+  become: true
+  when:
+    - ansible_system == "Linux"
+    - ansible_service_mgr == "systemd"
+  ansible.builtin.systemd_service:
+    name: node-exporter
+    state: started
+    daemon_reload: true
+    masked: false
+    enabled: true
