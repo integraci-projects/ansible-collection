@@ -4,10 +4,10 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/node_exporter \
+ExecStart=/usr/bin/node_exporter{% if node_exporter_flags %} \
 {% for flag in node_exporter_flags -%}
     {{ flag }}{{ ' \\' if not loop.last }}
-{% endfor -%}
+{% endfor -%}{% endif %}
 
 SyslogIdentifier=node_exporter
 Restart=always
