@@ -6,7 +6,7 @@ After=network-online.target
 Type=simple
 ExecStart=/usr/bin/node_exporter \
 {% for flag in node_exporter_flags -%}
-    '{{ flag }}' {{ "\" if not loop last }}
+    '{{ flag }}' {{ '\' if not loop last }}
 {% endfor -%}
 
 SyslogIdentifier=node_exporter
