@@ -9,12 +9,6 @@
     owner: nobody
     group: nogroup
 
-- name: Ensure Promtail data directory exists
-  ansible.windows.win_file:
-    path: "%ProgramFiles%\\Promtail Custom\\data"
-    state: directory
-
-
 - name: Write Promtail config (Windows)
   become: true
   when: ansible_system == "Win32NT"
