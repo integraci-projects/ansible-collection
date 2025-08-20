@@ -69,11 +69,3 @@
     working_directory: "%ProgramFiles%\\Promtail Custom"
     start_mode: auto
     state: present
-
-- name: Ensure Promtail Custom service is started (Windows)
-  become: true
-  when: ansible_system == "Win32NT"
-  ansible.windows.win_service:
-    name: promtail-custom
-    state: started
-    start_mode: auto
